@@ -31,7 +31,7 @@ interface LigneSerie {
 }
 
 export default function Dashboard() {
-  const { compte } = useSession();
+  const { company } = useSession();
   const [debut, setDebut] = useState(debutDuMois());
   const [fin, setFin] = useState(aujourdhui());
   const [stats, setStats] = useState<Stats | null>(null);
@@ -39,7 +39,6 @@ export default function Dashboard() {
   const [erreur, setErreur] = useState<string | null>(null);
   const [chargement, setChargement] = useState(true);
 
-  const company = compte?.companies[0];
 
   useEffect(() => {
     let annule = false;

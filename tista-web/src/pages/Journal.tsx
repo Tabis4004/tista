@@ -60,8 +60,7 @@ const LIBELLE_MODE: Record<string, string> = {
 };
 
 export default function Journal() {
-  const { compte } = useSession();
-  const stations = compte?.stations ?? [];
+  const { stations } = useSession();
 
   const [station, setStation] = useState('');
   const [date, setDate] = useState(aujourdhui());

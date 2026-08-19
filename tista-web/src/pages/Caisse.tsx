@@ -26,8 +26,7 @@ interface Ligne extends Record<string, unknown> {
 const n = (v: unknown): number => Number(v ?? 0);
 
 export default function Caisse() {
-  const { compte } = useSession();
-  const company = compte?.companies[0];
+  const { company, stations } = useSession();
 
   const [debut, setDebut] = useState(debutDuMois());
   const [fin, setFin] = useState(aujourdhui());
@@ -188,7 +187,7 @@ export default function Caisse() {
         <Champ label="Station">
           <select value={station} onChange={(e) => setStation(e.target.value)}>
             <option value="">Toutes</option>
-            {compte?.stations.map((s) => (
+            {stations.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.name}
               </option>

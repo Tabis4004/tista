@@ -29,7 +29,7 @@ const SELECT = 'id, legacy_id, code, solde, plafond, active, created_at, client:
 const MAX = 500;
 
 export default function Cartes() {
-  const { compte } = useSession();
+  const { company } = useSession();
   const [cartes, setCartes] = useState<Carte[]>([]);
   const [total, setTotal] = useState(0);
   const [recherche, setRecherche] = useState('');
@@ -37,7 +37,6 @@ export default function Cartes() {
   const [erreur, setErreur] = useState<string | null>(null);
   const [chargement, setChargement] = useState(true);
 
-  const company = compte?.companies[0];
 
   useEffect(() => {
     let annule = false;

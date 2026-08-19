@@ -360,3 +360,21 @@ text.axe { font-size: 10px; fill: var(--ink-muted); font-variant-numeric: tabula
   .nav-groupe-titre { display: none; }
   .nav-groupe { display: flex; margin-bottom: 0; }
 }
+
+/* ------------------------------------------------- sélecteur de société
+   Discret par construction : on ne change pas de société dix fois par jour,
+   mais quand on le fait il faut le voir tout de suite dans l'en-tête. */
+.selecteur-societe {
+  font: inherit;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--ink-2);
+  background: transparent;
+  border: 1px solid var(--hairline);
+  border-radius: 6px;
+  padding: 3px 6px;
+  margin-top: 4px;
+  max-width: 100%;
+}
+.selecteur-societe:focus { outline: 2px solid var(--accent); outline-offset: -1px; }

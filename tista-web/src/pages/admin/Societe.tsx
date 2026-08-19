@@ -40,8 +40,9 @@ const CHAMPS_MARQUE: { cle: string; label: string; aide?: string; long?: boolean
 ];
 
 export default function Societe() {
-  const { compte } = useSession();
-  const ref = compte?.companies[0];
+  // `societe` est la société courante (contexte) ; `company` est la ligne
+  // complète chargée depuis la base, avec ses métadonnées.
+  const { company: societe } = useSession();
 
   const [company, setCompany] = useState<Company | null>(null);
   const [marque, setMarque] = useState<Record<string, string>>({});
@@ -54,16 +55,16 @@ export default function Societe() {
   const [envoi, setEnvoi] = useState(false);
 
   const charger = useCallback(async () => {
-    if (!ref) return;
+    if (!societe) return;
     setChargement(true);
     setErreur(null);
     try {
       const [resC, resS, resP] = await Promise.all([
-        supabase.from('companies').select('id, name, metadata').eq('id', ref.id).single(),
+        supabase.from('companies').select('id, name, metadata').eq('id', societe.id).single(),
         supabase
           .from('stations')
           .select('id, name, adresse, caisse_initiale, solde_marchands, active')
-          .eq('company_id', ref.id)
+          .eq('company_id', societe.id)
           .order('name'),
         supabase
           .from('station_products')
@@ -85,7 +86,7 @@ export default function Societe() {
     } finally {
       setChargement(false);
     }
-  }, [ref?.id]);
+  }, [societe?.id]);
 
   useEffect(() => {
     charger();

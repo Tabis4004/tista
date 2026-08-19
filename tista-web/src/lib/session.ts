@@ -6,6 +6,9 @@ export interface Ref {
   uuid: string | null;
   legacy_id: number | null;
   name: string;
+  /** Renseigné sur les stations : la société à laquelle elles appartiennent. */
+  company_id?: string | null;
+  active?: boolean;
 }
 
 export interface Compte {
@@ -29,6 +32,21 @@ export interface SessionCtx {
   chargement: boolean;
   recharger: () => Promise<void>;
   deconnexion: () => Promise<void>;
+
+  /**
+   * Société sur laquelle on travaille.
+   *
+   * Un superadmin en voit plusieurs ; tous les écrans doivent parler de la
+   * même à un instant donné, sans quoi le tableau de bord afficherait une
+   * société et la saisie de vente en viserait une autre. D'où un seul point
+   * de vérité, ici, plutôt que `companies[0]` répété dans chaque écran.
+   */
+  company: Ref | null;
+
+  /** Les stations de `company` uniquement, jamais celles des autres sociétés. */
+  stations: Ref[];
+
+  choisirCompany: (id: string) => void;
 }
 
 export const SessionContext = createContext<SessionCtx>({
@@ -36,6 +54,9 @@ export const SessionContext = createContext<SessionCtx>({
   chargement: true,
   recharger: async () => {},
   deconnexion: async () => {},
+  company: null,
+  stations: [],
+  choisirCompany: () => {},
 });
 
 export const useSession = () => useContext(SessionContext);

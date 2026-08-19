@@ -43,8 +43,7 @@ const SELECT =
 const MAX = 500;
 
 export default function Bons() {
-  const { compte } = useSession();
-  const company = compte?.companies[0];
+  const { company, stations } = useSession();
 
   const [bons, setBons] = useState<Bon[]>([]);
   const [entete, setEntete] = useState<EnteteBon>({});
@@ -306,7 +305,7 @@ export default function Bons() {
           <Champ label="Station">
             <select value={station} onChange={(e) => setStation(e.target.value)}>
               <option value="">Toutes</option>
-              {compte?.stations.map((s) => (
+              {stations.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.name}
                 </option>

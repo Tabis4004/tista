@@ -8,7 +8,7 @@ import type { Colonne } from '../../components/ui';
 
 interface Affectation {
   role: { uuid: string | null; name: string } | null;
-  company: { name: string } | null;
+  company: { id: string; name: string } | null;
   station: { name: string } | null;
 }
 
@@ -34,15 +34,19 @@ interface Role {
 
 const SELECT =
   'id, name, prenoms, username, mail, phone, active, is_superadmin, last_connection, ' +
-  'user_roles(role:roles(uuid, name), company:companies(name), station:stations(name))';
+  // `!user_roles_user_id_fkey` est indispensable : user_roles référence profiles
+  // deux fois — par `user_id` (le titulaire) et par `created_by` (celui qui a
+  // attribué le rôle). Sans la contrainte nommée, PostgREST refuse de deviner.
+  'user_roles!user_roles_user_id_fkey(' +
+  'role:roles(uuid, name), company:companies(id, name), station:stations(name))';
 
 export default function Utilisateurs() {
-  const { compte } = useSession();
-  const company = compte?.companies[0];
+  const { compte, company, stations } = useSession();
 
   const [users, setUsers] = useState<Utilisateur[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
   const [recherche, setRecherche] = useState('');
+  const [filtreSociete, setFiltreSociete] = useState('');
   const [erreur, setErreur] = useState<string | null>(null);
   const [succes, setSucces] = useState<string | null>(null);
   const [chargement, setChargement] = useState(true);
@@ -55,7 +59,9 @@ export default function Utilisateurs() {
   const [phone, setPhone] = useState('');
   const [pass, setPass] = useState('');
   const [role, setRole] = useState('');
-  const [stations, setStations] = useState<string[]>([]);
+  // Les stations cochées dans le formulaire, à ne pas confondre avec
+  // `stations` du contexte, qui sont celles de la société courante.
+  const [stationsChoisies, setStationsChoisies] = useState<string[]>([]);
   const [envoi, setEnvoi] = useState(false);
 
   const charger = useCallback(async () => {
@@ -82,13 +88,19 @@ export default function Utilisateurs() {
 
   const affiches = useMemo(() => {
     const q = recherche.trim().toLowerCase();
-    if (!q) return users;
-    return users.filter((u) =>
-      [u.name, u.prenoms, u.username, u.mail, u.phone]
+    return users.filter((u) => {
+      if (filtreSociete) {
+        const dans = (u.user_roles ?? []).some((a) => a.company?.id === filtreSociete);
+        // Un superadmin n'est rattaché à aucune société en particulier : le
+        // filtrer par société le ferait disparaître de partout.
+        if (!dans && !u.is_superadmin) return false;
+      }
+      if (!q) return true;
+      return [u.name, u.prenoms, u.username, u.mail, u.phone]
         .filter(Boolean)
-        .some((v) => String(v).toLowerCase().includes(q)),
-    );
-  }, [users, recherche]);
+        .some((v) => String(v).toLowerCase().includes(q));
+    });
+  }, [users, recherche, filtreSociete]);
 
   async function creer() {
     setEnvoi(true);
@@ -103,7 +115,7 @@ export default function Utilisateurs() {
           phone: phone || undefined,
           pass: pass || undefined,
           role,
-          stations,
+          stations: stationsChoisies,
           company: company?.uuid ?? undefined,
           active: true,
         },
@@ -121,7 +133,7 @@ export default function Utilisateurs() {
             : 'Un mot de passe a été généré — communiquez-le depuis la réponse serveur.'),
       );
       setOuvert(false);
-      setNom(''); setPrenoms(''); setMail(''); setPhone(''); setPass(''); setStations([]);
+      setNom(''); setPrenoms(''); setMail(''); setPhone(''); setPass(''); setStationsChoisies([]);
       await charger();
     } catch (e) {
       setErreur(messageErreur(e));
@@ -150,8 +162,12 @@ export default function Utilisateurs() {
     if (u.is_superadmin) return 'Superadmin (toutes sociétés)';
     if (a.length === 0) return 'Aucun rôle';
     return a
-      .map((x) => `${x.role?.name ?? '?'}${x.station ? ` — ${x.station.name}` : ' — société'}`)
-      .join(', ');
+      .map(
+        (x) =>
+          `${x.role?.name ?? '?'} @ ${x.company?.name ?? '?'}` +
+          (x.station ? ` (${x.station.name})` : ' (toute la société)'),
+      )
+      .join(' · ');
   };
 
   const colonnes: Colonne<Utilisateur>[] = [
@@ -241,14 +257,14 @@ export default function Utilisateurs() {
             <div className="champ">
               <label>Stations (aucune cochée = accès à toute la société)</label>
               <div className="ligne">
-                {compte?.stations.map((s) => (
+                {stations.map((s) => (
                   <label key={s.id} className="case">
                     <input
                       type="checkbox"
-                      checked={stations.includes(s.uuid ?? s.id)}
+                      checked={stationsChoisies.includes(s.uuid ?? s.id)}
                       onChange={(e) => {
                         const v = s.uuid ?? s.id;
-                        setStations((prev) =>
+                        setStationsChoisies((prev) =>
                           e.target.checked ? [...prev, v] : prev.filter((x) => x !== v),
                         );
                       }}
@@ -277,6 +293,18 @@ export default function Utilisateurs() {
       </div>
 
       <div className="filtres">
+        {(compte?.companies.length ?? 0) > 1 ? (
+          <Champ label="Société">
+            <select value={filtreSociete} onChange={(e) => setFiltreSociete(e.target.value)}>
+              <option value="">Toutes</option>
+              {compte?.companies.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </Champ>
+        ) : null}
         <Champ label="Rechercher">
           <input
             type="search"

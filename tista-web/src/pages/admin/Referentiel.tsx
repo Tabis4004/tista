@@ -98,8 +98,7 @@ function Section({ titre, aide, children }: { titre: string; aide?: string; chil
 type L = Record<string, unknown>;
 
 export default function Referentiel() {
-  const { compte } = useSession();
-  const company = compte?.companies[0];
+  const { company, stations } = useSession();
 
   const [produits, setProduits] = useState<L[]>([]);
   const [cuves, setCuves] = useState<L[]>([]);
@@ -152,7 +151,7 @@ export default function Referentiel() {
     }
   }
 
-  const optStations = (compte?.stations ?? []).map((s) => ({ valeur: s.id, libelle: s.name }));
+  const optStations = (stations).map((s) => ({ valeur: s.id, libelle: s.name }));
   const optProduits = produits.map((p) => ({ valeur: String(p.id), libelle: String(p.name) }));
   const optCuves = cuves.map((c) => ({ valeur: String(c.id), libelle: String(c.name) }));
   const optPompes = pompes.map((p) => ({ valeur: String(p.id), libelle: String(p.name) }));

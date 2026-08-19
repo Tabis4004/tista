@@ -30,7 +30,7 @@ const SELECT =
  * dernier relevé connu, le produit vient de la cuve, le prix du référentiel.
  */
 export default function SaisieVente() {
-  const { compte } = useSession();
+  const { stations } = useSession();
   const [station, setStation] = useState('');
   const [pistolets, setPistolets] = useState<Pistolet[]>([]);
   const [pistoletId, setPistoletId] = useState('');
@@ -42,8 +42,8 @@ export default function SaisieVente() {
   const [enCours, setEnCours] = useState(false);
 
   useEffect(() => {
-    if (!station && compte?.stations.length) setStation(compte.stations[0].id);
-  }, [compte?.stations.length]);
+    if (!station && stations.length) setStation(stations[0].id);
+  }, [stations.length]);
 
   useEffect(() => {
     let annule = false;
@@ -130,7 +130,7 @@ export default function SaisieVente() {
         <div className="filtres" style={{ marginBottom: 18 }}>
           <Champ label="Station">
             <select value={station} onChange={(e) => setStation(e.target.value)}>
-              {compte?.stations.map((s) => (
+              {stations.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.name}
                 </option>

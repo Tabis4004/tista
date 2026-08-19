@@ -30,7 +30,7 @@ const SELECT =
 const PAR_PAGE = 100;
 
 export default function Operations() {
-  const { compte } = useSession();
+  const { stations } = useSession();
   const [debut, setDebut] = useState(debutDuMois());
   const [fin, setFin] = useState(aujourdhui());
   const [station, setStation] = useState('');
@@ -147,7 +147,7 @@ export default function Operations() {
         <Champ label="Station">
           <select value={station} onChange={(e) => setStation(e.target.value)}>
             <option value="">Toutes</option>
-            {compte?.stations.map((s) => (
+            {stations.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.name}
               </option>

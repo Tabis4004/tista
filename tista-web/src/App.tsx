@@ -16,10 +16,21 @@ import Bons from './pages/admin/Bons';
 import Utilisateurs from './pages/admin/Utilisateurs';
 import Societe from './pages/admin/Societe';
 import Referentiel from './pages/admin/Referentiel';
+import Societes from './pages/admin/Societes';
+
+const CLE_SOCIETE = 'tista.company';
 
 export default function App() {
   const [compte, setCompte] = useState<Compte | null>(null);
   const [chargement, setChargement] = useState(true);
+  const [companyId, setCompanyId] = useState<string | null>(() =>
+    localStorage.getItem(CLE_SOCIETE),
+  );
+
+  const choisirCompany = useCallback((id: string) => {
+    setCompanyId(id);
+    localStorage.setItem(CLE_SOCIETE, id);
+  }, []);
 
   const recharger = useCallback(async () => {
     setChargement(true);
@@ -53,15 +64,30 @@ export default function App() {
     );
   }
 
+  // La société retenue au dernier passage, si elle est toujours accessible ;
+  // sinon la première. Un superadmin qui perd l'accès à une société ne doit pas
+  // se retrouver devant des écrans vides sans comprendre pourquoi.
+  const societes = compte?.companies ?? [];
+  const company =
+    societes.find((c) => c.id === companyId) ?? societes[0] ?? null;
+
+  const stations = (compte?.stations ?? []).filter(
+    (s) => !company || !s.company_id || s.company_id === company.id,
+  );
+
   return (
-    <SessionContext.Provider value={{ compte, chargement, recharger, deconnexion }}>
+    <SessionContext.Provider
+      value={{ compte, chargement, recharger, deconnexion, company, stations, choisirCompany }}
+    >
       {compte ? <Console /> : <Login />}
     </SessionContext.Provider>
   );
 }
 
 function Console() {
-  const { compte } = useSession();
+  const { compte, company, choisirCompany } = useSession();
+  const societes = compte?.companies ?? [];
+  const superadmin = compte?.profil.is_superadmin === true;
 
   const peutVendre = aDroit(compte, 'EDIT_VENTE');
   const voitCartes = aDroit(compte, 'CARD');
@@ -72,7 +98,7 @@ function Console() {
   // d'exploitation. Le comptable n'y a pas sa place ; le gérant réseau si.
   const voitUtilisateurs = aDroit(compte, 'USERS') || aDroit(compte, 'ROLE');
   const voitSociete = aDroit(compte, 'EDIT_COMP');
-  const admin = voitUtilisateurs || voitSociete;
+  const admin = voitUtilisateurs || voitSociete || superadmin;
 
   return (
     <BrowserRouter>
@@ -80,7 +106,22 @@ function Console() {
         <nav className="sidebar">
           <div className="brand">
             TiSta+
-            <small>{compte?.companies[0]?.name ?? '—'}</small>
+            {societes.length > 1 ? (
+              <select
+                className="selecteur-societe"
+                value={company?.id ?? ''}
+                onChange={(e) => choisirCompany(e.target.value)}
+                aria-label="Société"
+              >
+                {societes.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <small>{company?.name ?? '—'}</small>
+            )}
           </div>
 
           <Groupe titre="Exploitation">
@@ -102,6 +143,7 @@ function Console() {
 
           {admin ? (
             <Groupe titre="Administration">
+              {superadmin ? <Lien to="/admin/societes" libelle="Sociétés" /> : null}
               {voitUtilisateurs ? <Lien to="/admin/utilisateurs" libelle="Utilisateurs" /> : null}
               {voitSociete ? <Lien to="/admin/societe" libelle="Société" /> : null}
               {voitSociete ? <Lien to="/admin/referentiel" libelle="Référentiel" /> : null}
@@ -122,6 +164,10 @@ function Console() {
             <Route path="/cartes" element={voitCartes ? <Cartes /> : <Navigate to="/" replace />} />
             <Route path="/clients" element={voitClients ? <Clients /> : <Navigate to="/" replace />} />
             <Route path="/bons" element={voitCartes ? <Bons /> : <Navigate to="/" replace />} />
+            <Route
+              path="/admin/societes"
+              element={superadmin ? <Societes /> : <Navigate to="/" replace />}
+            />
             <Route
               path="/admin/utilisateurs"
               element={voitUtilisateurs ? <Utilisateurs /> : <Navigate to="/" replace />}

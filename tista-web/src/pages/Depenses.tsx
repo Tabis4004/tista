@@ -21,7 +21,7 @@ const SELECT =
   'auteur:profiles!depenses_created_by_fkey(name)';
 
 export default function Depenses() {
-  const { compte } = useSession();
+  const { compte, stations } = useSession();
   const peutSaisir = aDroit(compte, 'EDIT_DEP');
 
   const [debut, setDebut] = useState(debutDuMois());
@@ -41,8 +41,8 @@ export default function Depenses() {
   const [enCours, setEnCours] = useState(false);
 
   useEffect(() => {
-    if (!stationSaisie && compte?.stations.length) setStationSaisie(compte.stations[0].id);
-  }, [compte?.stations.length]);
+    if (!stationSaisie && stations.length) setStationSaisie(stations[0].id);
+  }, [stations.length]);
 
   useEffect(() => {
     let annule = false;
@@ -150,7 +150,7 @@ export default function Depenses() {
           <div className="filtres" style={{ marginBottom: 0 }}>
             <Champ label="Station">
               <select value={stationSaisie} onChange={(e) => setStationSaisie(e.target.value)} required>
-                {compte?.stations.map((s) => (
+                {stations.map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.name}
                   </option>
@@ -190,7 +190,7 @@ export default function Depenses() {
         <Champ label="Station">
           <select value={stationFiltre} onChange={(e) => setStationFiltre(e.target.value)}>
             <option value="">Toutes</option>
-            {compte?.stations.map((s) => (
+            {stations.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.name}
               </option>

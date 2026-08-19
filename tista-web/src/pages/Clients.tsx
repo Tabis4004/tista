@@ -26,14 +26,13 @@ const SELECT =
 const MAX = 500;
 
 export default function Clients() {
-  const { compte } = useSession();
+  const { company } = useSession();
   const [clients, setClients] = useState<Client[]>([]);
   const [total, setTotal] = useState(0);
   const [recherche, setRecherche] = useState('');
   const [erreur, setErreur] = useState<string | null>(null);
   const [chargement, setChargement] = useState(true);
 
-  const company = compte?.companies[0];
 
   useEffect(() => {
     let annule = false;
