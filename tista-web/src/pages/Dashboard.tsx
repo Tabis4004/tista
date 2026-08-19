@@ -4,6 +4,8 @@ import { useSession } from '../lib/session';
 import { messageErreur } from '../lib/erreurs';
 import { montant, nombre, debutDuMois, aujourdhui } from '../lib/format';
 import { Alerte, Champ, Tile } from '../components/ui';
+import { GraphiqueJournalier } from '../components/graphique';
+import type { PointSerie } from '../components/graphique';
 
 interface OperationAgregee {
   type: string;
@@ -21,11 +23,19 @@ interface Stats {
   operations: OperationAgregee[];
 }
 
+interface LigneSerie {
+  jour: string;
+  ventes: number | string;
+  recharges: number | string;
+  depenses: number | string;
+}
+
 export default function Dashboard() {
   const { compte } = useSession();
   const [debut, setDebut] = useState(debutDuMois());
   const [fin, setFin] = useState(aujourdhui());
   const [stats, setStats] = useState<Stats | null>(null);
+  const [serie, setSerie] = useState<PointSerie[]>([]);
   const [erreur, setErreur] = useState<string | null>(null);
   const [chargement, setChargement] = useState(true);
 
@@ -38,13 +48,29 @@ export default function Dashboard() {
       setChargement(true);
       setErreur(null);
       try {
-        const { data, error } = await supabase.rpc('stats_company', {
-          p_company: company.id,
-          p_debut: debut,
-          p_fin: fin,
-        });
-        if (error) throw error;
-        if (!annule) setStats(data as Stats);
+        // Les deux appels sont indépendants : les lancer en parallèle évite
+        // d'additionner leurs latences.
+        const [resStats, resSerie] = await Promise.all([
+          supabase.rpc('stats_company', { p_company: company.id, p_debut: debut, p_fin: fin }),
+          supabase.rpc('serie_journaliere', { p_company: company.id, p_debut: debut, p_fin: fin }),
+        ]);
+
+        if (resStats.error) throw resStats.error;
+        if (resSerie.error) throw resSerie.error;
+
+        if (!annule) {
+          setStats(resStats.data as Stats);
+          // Postgres renvoie les `numeric` en chaînes : sans conversion, les
+          // hauteurs de barres seraient calculées sur des chaînes et le
+          // graphique s'effondrerait sans message d'erreur.
+          setSerie(
+            ((resSerie.data ?? []) as LigneSerie[]).map((l) => ({
+              jour: l.jour,
+              ventes: Number(l.ventes ?? 0),
+              depenses: Number(l.depenses ?? 0),
+            })),
+          );
+        }
       } catch (e) {
         if (!annule) setErreur(messageErreur(e));
       } finally {
@@ -106,6 +132,9 @@ export default function Dashboard() {
               indice={caisseNette < 0 ? 'Négatif sur la période' : undefined}
             />
           </div>
+
+          <h2>Évolution</h2>
+          <GraphiqueJournalier serie={serie} />
 
           <h2>Encours et référentiel</h2>
           <div className="kpi-row">

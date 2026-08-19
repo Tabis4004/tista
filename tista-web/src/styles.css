@@ -258,3 +258,45 @@ button.primaire:hover:not(:disabled) { background: var(--accent-ink); }
   .brand, .sidebar-foot { display: none; }
   .main { padding: 16px; }
 }
+
+/* --------------------------------------------------------------- graphique
+   Deux séries seulement, et chacune porte son total en toutes lettres dans la
+   légende : la couleur distingue, elle n'informe pas seule. */
+.graphique { padding: 16px 18px 6px; }
+.graphique-tete {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+.graphique h3 { font-size: 14px; margin: 0; font-weight: 600; }
+
+.legende { display: flex; gap: 18px; font-size: 12px; color: var(--ink-2); }
+.legende span { display: inline-flex; align-items: center; gap: 6px; }
+.pastille { width: 9px; height: 9px; border-radius: 2px; display: inline-block; }
+.pastille.ventes { background: var(--ink); }
+.pastille.depenses { background: var(--critical); }
+
+.graphique-svg { width: 100%; height: auto; display: block; }
+.grille { stroke: var(--hairline); stroke-width: 1; }
+.axe-ligne { stroke: var(--border); stroke-width: 1; }
+text.axe { font-size: 10px; fill: var(--ink-muted); font-variant-numeric: tabular-nums; }
+.barre.ventes { fill: var(--ink); }
+.barre.depenses { fill: var(--critical); }
+.barre { cursor: default; }
+.barre:hover { opacity: 0.7; }
+
+/* --------------------------------------------------------------- étiquettes
+   Un état ne se lit jamais à la couleur seule : le mot est toujours là. */
+.etiquette {
+  display: inline-block;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  border: 1px solid var(--hairline);
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+.etiquette.inactif { border-color: var(--critical); color: #7c1d1d; background: #fdf1f1; }

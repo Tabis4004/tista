@@ -41,3 +41,30 @@ export const debutDuMois = (): string => {
 };
 
 export const aujourdhui = (): string => iso(new Date());
+
+// ---------------------------------------------------------------------------
+// Formats courts, réservés aux axes de graphique
+// ---------------------------------------------------------------------------
+
+const nfCourt = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 1 });
+
+/**
+ * Montant abrégé pour un axe : « 1,2 M », « 450 k ».
+ *
+ * Sur un axe, la précision au franc près est du bruit — l'ordre de grandeur
+ * suffit, et la valeur exacte reste lisible au survol de chaque barre.
+ * À réserver aux axes : dans un tableau ou une tuile, on montre le montant
+ * complet.
+ */
+export const montantCourt = (v: number): string => {
+  const a = Math.abs(v);
+  if (a >= 1_000_000) return `${nfCourt.format(v / 1_000_000)} M`;
+  if (a >= 1_000) return `${nfCourt.format(v / 1_000)} k`;
+  return nfMontant.format(v);
+};
+
+/** `2026-08-14` → `14/08`, pour les libellés d'axe des dates. */
+export const jourCourt = (isoJour: string): string => {
+  const [, m, d] = isoJour.split('-');
+  return m && d ? `${d}/${m}` : isoJour;
+};

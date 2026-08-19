@@ -9,6 +9,8 @@ import Operations from './pages/Operations';
 import Depenses from './pages/Depenses';
 import Caisse from './pages/Caisse';
 import SaisieVente from './pages/SaisieVente';
+import Cartes from './pages/Cartes';
+import Clients from './pages/Clients';
 
 export default function App() {
   const [compte, setCompte] = useState<Compte | null>(null);
@@ -56,6 +58,8 @@ export default function App() {
 function Console() {
   const { compte } = useSession();
   const peutVendre = aDroit(compte, 'EDIT_VENTE');
+  const voitCartes = aDroit(compte, 'CARD');
+  const voitClients = aDroit(compte, 'CLIENT');
 
   return (
     <BrowserRouter>
@@ -71,6 +75,8 @@ function Console() {
           {peutVendre ? <Lien to="/vente" libelle="Saisir une vente" /> : null}
           <Lien to="/depenses" libelle="Dépenses" />
           <Lien to="/caisse" libelle="Caisse" />
+          {voitCartes ? <Lien to="/cartes" libelle="Cartes" /> : null}
+          {voitClients ? <Lien to="/clients" libelle="Clients" /> : null}
 
           <PiedDePage />
         </nav>
@@ -82,6 +88,8 @@ function Console() {
             <Route path="/vente" element={peutVendre ? <SaisieVente /> : <Navigate to="/" replace />} />
             <Route path="/depenses" element={<Depenses />} />
             <Route path="/caisse" element={<Caisse />} />
+            <Route path="/cartes" element={voitCartes ? <Cartes /> : <Navigate to="/" replace />} />
+            <Route path="/clients" element={voitClients ? <Clients /> : <Navigate to="/" replace />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
