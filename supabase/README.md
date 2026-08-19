@@ -25,9 +25,11 @@ depuis la policy de `companies` elle-même : la fonction est STABLE, donc
 aveugle à la ligne qu'on vient d'insérer, et tout `INSERT ... RETURNING`
 échoue en `42501`. Détail complet en tête du fichier de migration.
 
-## À corriger
+## Corrigé
 
-`vente_sur_index()` retranche les parts carte et bon **par station et par
-jour**, à chaque relevé de pistolet. Sur une station à plusieurs pistolets,
-elles sont donc déduites autant de fois qu'il y a de relevés, et la caisse du
-jour est sous-évaluée d'autant. Invisible sur une station mono-pistolet.
+`vente_sur_index()` retranchait les parts carte et bon **par station et par
+jour**, à chaque relevé de pistolet : sur une station à plusieurs pistolets,
+elles étaient déduites autant de fois qu'il y avait de relevés et la caisse du
+jour sortait sous-évaluée. Depuis `20260819132636`, chaque vente carte ou bon
+est rattachée au relevé qui l'a absorbée (`operations.releve_id`) et un relevé
+ne déduit que ce qui ne l'a pas encore été.
