@@ -95,6 +95,12 @@ class _SideMenuState extends State<SideMenu> {
           'droits': hasDroits(droits: ['DEP'])
         },
         {
+          'icon': Icons.badge_outlined,
+          'label': 'Mon activité',
+          'page': AppRouteConstants.mesStats,
+          'droits': true
+        },
+        {
           'icon': Icons.bar_chart,
           'label': 'Statistiques',
           'page': AppRouteConstants.stats,

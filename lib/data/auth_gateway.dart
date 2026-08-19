@@ -95,23 +95,65 @@ class AuthGateway {
   }
 
   /// Inscription par identifiant + mot de passe.
+  ///
+  /// `signUp` ne rend pas toujours une session : quand la confirmation d'email
+  /// est activée côté Supabase, le compte est créé mais reste inutilisable tant
+  /// que le lien n'a pas été cliqué. On distingue donc trois issues, parce
+  /// qu'elles appellent trois réponses différentes de l'utilisateur :
+  ///
+  ///   - session immédiate           -> on continue ;
+  ///   - pas de session, connexion possible -> on se connecte ;
+  ///   - pas de session, connexion refusée  -> confirmation en attente.
+  ///
+  /// Le cas qui compte est le troisième. Il produisait « Identifiant ou mot de
+  /// passe incorrect », ce qui est faux et pousse l'utilisateur à ressaisir
+  /// indéfiniment un mot de passe correct — alors que son compte existe.
   static Future<Map<String, dynamic>> register(Map model) async {
     final identifiant =
         '${model['identifiant'] ?? model['mail'] ?? model['username'] ?? model['uuid'] ?? ''}'
             .trim();
+    final email = emailPour(identifiant);
+    final motDePasse = '${model['pass'] ?? ''}';
+
     try {
-      await SupabaseConfig.auth.signUp(
-        email: emailPour(identifiant),
-        password: '${model['pass'] ?? ''}',
+      final res = await SupabaseConfig.auth.signUp(
+        email: email,
+        password: motDePasse,
         data: {
           'name': model['name'] ?? model['displayName'],
           'prenoms': model['prenoms'],
           'username': identifiant.contains('@') ? null : identifiant,
         },
       );
+
+      if (res.session == null) {
+        // Deuxième tentative : selon la configuration du projet, la session
+        // n'est pas rendue par `signUp` mais la connexion fonctionne.
+        try {
+          await SupabaseConfig.auth
+              .signInWithPassword(email: email, password: motDePasse);
+        } catch (_) {
+          // Un pseudo produit une adresse en `@tista.app`, un domaine qui
+          // n'existe pas : aucun message de confirmation ne pourra jamais
+          // arriver. Le dire est plus utile que de faire réessayer.
+          throw DataException(
+            'EMAIL_NON_CONFIRME',
+            identifiant.contains('@')
+                ? 'Compte créé. Confirmez-le depuis le lien envoyé à $identifiant, '
+                    'puis connectez-vous.'
+                : "Compte créé, mais la confirmation par email est exigée par le "
+                    "serveur — et un pseudo n'a pas d'adresse réelle. "
+                    "Demandez à l'administrateur de désactiver « Confirm email », "
+                    'ou inscrivez-vous avec une adresse email.',
+          );
+        }
+      }
+    } on DataException {
+      rethrow;
     } catch (e) {
       throw DataException.from(e);
     }
+
     return account();
   }
 
@@ -127,7 +169,11 @@ class AuthGateway {
   /// `POST /api/auth/account` — profil + rôles + stations.
   static Future<Map<String, dynamic>> account() async {
     if (!SupabaseConfig.isSignedIn) {
-      throw const DataException('NO_USER', 'Aucune session active');
+      // Code distinct de `NO_USER` : ce n'est pas un identifiant refusé, c'est
+      // une session absente. Les confondre affichait « mot de passe incorrect »
+      // à quelqu'un dont le mot de passe était juste.
+      throw const DataException(
+          'SESSION_ABSENTE', 'Session absente. Reconnectez-vous.');
     }
 
     late final Map<String, dynamic> compte;

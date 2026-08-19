@@ -29,6 +29,7 @@ interface Role {
   id: string;
   uuid: string | null;
   name: string;
+  niveau: string;
   droits_app: string[] | null;
 }
 
@@ -70,7 +71,10 @@ export default function Utilisateurs() {
     try {
       const [resU, resR] = await Promise.all([
         supabase.from('profiles').select(SELECT).order('name').limit(300),
-        supabase.from('roles').select('id, uuid, name, droits_app').order('name'),
+        // `roles_attribuables` et non `roles` : la base décide de ce qu'un
+        // administrateur de société peut attribuer, et elle ne renvoie que les
+        // rôles d'employé. La liste n'est pas filtrée ici — elle arrive filtrée.
+        supabase.rpc('roles_attribuables', { p_company: company?.id ?? null }),
       ]);
       if (resU.error) throw resU.error;
       setUsers((resU.data ?? []) as unknown as Utilisateur[]);
@@ -80,7 +84,7 @@ export default function Utilisateurs() {
     } finally {
       setChargement(false);
     }
-  }, []);
+  }, [company?.id]);
 
   useEffect(() => {
     charger();
@@ -322,7 +326,12 @@ export default function Utilisateurs() {
         <Table colonnes={colonnes} lignes={affiches} vide="Aucun compte ne correspond." />
       )}
 
-      <h2>Rôles et droits</h2>
+      <h2>Rôles que vous pouvez attribuer</h2>
+      <p className="muted" style={{ marginTop: -4 }}>
+        Les rôles qui donnent le contrôle d'une société entière ou du parc ne
+        figurent pas ici — et ne sont pas non plus acceptés si on tente de les
+        attribuer par un autre chemin.
+      </p>
       <Table
         colonnes={[
           { cle: 'name', titre: 'Rôle', fort: true },

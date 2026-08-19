@@ -141,17 +141,17 @@ class _DashboardPageState extends State<DashboardPage> {
                                                 child: Row(children: [
                                                   Container(
                                                       decoration: BoxDecoration(
-                                                          color:
-                                                              Colors.redAccent,
+                                                          color: tistaWash1,
                                                           borderRadius:
                                                               BorderRadius
-                                                                  .circular(5)),
+                                                                  .circular(10)),
                                                       padding:
                                                           const EdgeInsets.all(
                                                               8),
                                                       child: const Icon(
                                                           Icons.account_balance,
-                                                          color: Colors.white)),
+                                                          color:
+                                                              tistaSerie1)),
                                                   const SizedBox(width: 12),
                                                   Expanded(
                                                       child: Column(
@@ -197,7 +197,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                                 child: Row(children: [
                                                   Container(
                                                       decoration: BoxDecoration(
-                                                          color: Colors.blue,
+                                                          color: tistaWash1,
                                                           borderRadius:
                                                               BorderRadius
                                                                   .circular(5)),
@@ -206,7 +206,8 @@ class _DashboardPageState extends State<DashboardPage> {
                                                               8),
                                                       child: const Icon(
                                                           Icons.domain,
-                                                          color: Colors.white)),
+                                                          color:
+                                                              tistaSerie1)),
                                                   const SizedBox(width: 12),
                                                   Expanded(
                                                       child: Column(
@@ -249,15 +250,15 @@ class _DashboardPageState extends State<DashboardPage> {
                                           child: Row(children: [
                                             Container(
                                                 decoration: BoxDecoration(
-                                                    color: Colors.teal,
+                                                    color: tistaWash1,
                                                     borderRadius:
                                                         BorderRadius.circular(
-                                                            5)),
+                                                            10)),
                                                 padding:
                                                     const EdgeInsets.all(8),
                                                 child: const Icon(
                                                     Icons.assured_workload,
-                                                    color: Colors.white)),
+                                                    color: tistaSerie1)),
                                             const SizedBox(width: 12),
                                             Expanded(
                                                 child: Column(
@@ -281,68 +282,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                           ]))),
                                 ))
                           ]),
-                          const SizedBox(height: defaultPadding * 5),
-                          Row(children: [
-                            if (hasDroits(droits: ['OP']))
-                              Expanded(
-                                child: Animate(
-                                  effects: true == true
-                                      ? null
-                                      : [
-                                          const SlideEffect(
-                                              duration:
-                                                  Duration(milliseconds: 1500)),
-                                          const ShakeEffect(
-                                              duration:
-                                                  Duration(milliseconds: 700)),
-                                          const FadeEffect(
-                                              duration:
-                                                  Duration(milliseconds: 800))
-                                        ],
-                                  child: Card(
-                                      elevation: 0,
-                                      child: ListTile(
-                                          onTap: () {
-                                            context.goNamed(
-                                                AppRouteConstants.operation);
-                                          },
-                                          trailing: Responsive.isMobile(context)
-                                              ? null
-                                              : const Icon(Icons.visibility,
-                                                  size: 20),
-                                          title: const Text('Opérations'))),
-                                ),
-                              ),
-                            if (hasDroits(droits: ['DEP']))
-                              Expanded(
-                                  child: Animate(
-                                effects: true == true
-                                    ? null
-                                    : [
-                                        const SlideEffect(
-                                            duration:
-                                                Duration(milliseconds: 1500)),
-                                        const ShakeEffect(
-                                            duration:
-                                                Duration(milliseconds: 700)),
-                                        const FadeEffect(
-                                            duration:
-                                                Duration(milliseconds: 800))
-                                      ],
-                                child: Card(
-                                    elevation: 0,
-                                    child: ListTile(
-                                        onTap: () {
-                                          context.goNamed(
-                                              AppRouteConstants.depense);
-                                        },
-                                        trailing: Responsive.isMobile(context)
-                                            ? null
-                                            : const Icon(Icons
-                                                .keyboard_arrow_right_outlined),
-                                        title: const Text('Dépenses'))),
-                              ))
-                          ]),
+                          const SizedBox(height: defaultPadding * 2),
                           // Les services, en surfaces teintées : ce sont les
                           // gestes du quotidien, ils doivent se trouver sans
                           // être lus. Chaque carte reste conditionnée à son
@@ -377,6 +317,17 @@ class _DashboardPageState extends State<DashboardPage> {
                                       lavis: tistaWash4,
                                       onTap: () => context
                                           .goNamed(AppRouteConstants.venteBon))),
+                            if (hasDroits(droits: ['OP']))
+                              BootstrapCol(
+                                  sizes: 'col-6 col-md-3',
+                                  child: CarteService(
+                                      libelle: 'Opérations',
+                                      detail: 'Ventes et recharges',
+                                      icone: Icons.receipt,
+                                      teinte: tistaSerie1,
+                                      lavis: tistaWash1,
+                                      onTap: () => context.goNamed(
+                                          AppRouteConstants.operation))),
                             if (hasDroits(droits: ['DEP']))
                               BootstrapCol(
                                   sizes: 'col-6 col-md-3',
@@ -410,6 +361,19 @@ class _DashboardPageState extends State<DashboardPage> {
                                       lavis: tistaWash1,
                                       onTap: () => context
                                           .goNamed(AppRouteConstants.client))),
+                            // Sans condition de droit : « mes chiffres » ne
+                            // regarde que celui qui les demande, et la base ne
+                            // renvoie que ses propres lignes.
+                            BootstrapCol(
+                                sizes: 'col-6 col-md-3',
+                                child: CarteService(
+                                    libelle: 'Mon activité',
+                                    detail: 'Ce que j\'ai encaissé',
+                                    icone: Icons.badge_outlined,
+                                    teinte: tistaSerie1,
+                                    lavis: tistaWash1,
+                                    onTap: () => context
+                                        .goNamed(AppRouteConstants.mesStats))),
                             if (hasDroits(droits: ['STATS']))
                               BootstrapCol(
                                   sizes: 'col-6 col-md-3',

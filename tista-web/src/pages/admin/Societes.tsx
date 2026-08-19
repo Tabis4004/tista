@@ -20,12 +20,17 @@ interface Societe extends Record<string, unknown> {
   name: string;
   solde_marchands: number;
   active: boolean;
+  statut: 'EN_ATTENTE' | 'ACTIVE' | 'REFUSEE';
+  motif_refus: string | null;
   created_at: string;
+  demandeur: { name: string | null; mail: string | null } | null;
   stations: { id: string }[] | null;
   clients: { id: string }[] | null;
 }
 
-const SELECT = 'id, uuid, name, solde_marchands, active, created_at, stations(id), clients(id)';
+const SELECT =
+  'id, uuid, name, solde_marchands, active, statut, motif_refus, created_at, ' +
+  'demandeur:profiles!companies_demandeur_fkey(name, mail), stations(id), clients(id)';
 
 export default function Societes() {
   const { compte, choisirCompany, recharger } = useSession();
@@ -89,6 +94,40 @@ export default function Societes() {
     }
   }
 
+  /**
+   * Valider ou refuser une demande.
+   *
+   * L'approbation ne fait pas que changer un statut : elle attribue au
+   * demandeur le rôle ADMIN_COMPANY sur SA société. C'est le seul chemin par
+   * lequel ce rôle s'obtient — un administrateur de société ne peut pas se le
+   * donner, ni le donner à quelqu'un d'autre.
+   */
+  async function statuer(s: Societe, approuver: boolean) {
+    let motif: string | null = null;
+    if (!approuver) {
+      motif = window.prompt(`Refuser la demande « ${s.name} » ?\n\nMotif :`);
+      if (motif === null) return;
+    }
+    setErreur(null);
+    try {
+      const { error } = await supabase.rpc('valider_societe', {
+        p_company: s.id,
+        p_approuver: approuver,
+        p_motif: motif,
+      });
+      if (error) throw error;
+      setSucces(
+        approuver
+          ? `« ${s.name} » est active. ${s.demandeur?.name ?? 'Le demandeur'} en est désormais administrateur.`
+          : `Demande « ${s.name} » refusée.`,
+      );
+      await charger();
+      await recharger();
+    } catch (e) {
+      setErreur(messageErreur(e));
+    }
+  }
+
   async function basculer(s: Societe) {
     setErreur(null);
     try {
@@ -115,25 +154,46 @@ export default function Societes() {
       num: true,
       rendu: (s) => montant(s.solde_marchands),
     },
+    {
+      cle: 'demandeur',
+      titre: 'Demandée par',
+      rendu: (s) => s.demandeur?.name ?? s.demandeur?.mail ?? '—',
+    },
     { cle: 'created_at', titre: 'Créée le', rendu: (s) => jour(s.created_at) },
     {
-      cle: 'active',
+      cle: 'statut',
       titre: 'État',
       rendu: (s) => (
-        <span className={s.active ? 'etiquette' : 'etiquette inactif'}>
-          {s.active ? 'Active' : 'Suspendue'}
+        <span className={s.statut === 'ACTIVE' && s.active ? 'etiquette' : 'etiquette inactif'}>
+          {s.statut === 'EN_ATTENTE'
+            ? 'En attente'
+            : s.statut === 'REFUSEE'
+              ? 'Refusée'
+              : s.active
+                ? 'Active'
+                : 'Suspendue'}
         </span>
       ),
     },
     {
       cle: 'actions',
       titre: '',
-      rendu: (s) => (
-        <div className="ligne" style={{ gap: 6 }}>
-          <button onClick={() => choisirCompany(s.id)}>Travailler dessus</button>
-          <button onClick={() => basculer(s)}>{s.active ? 'Suspendre' : 'Réactiver'}</button>
-        </div>
-      ),
+      rendu: (s) =>
+        s.statut === 'EN_ATTENTE' ? (
+          <div className="ligne" style={{ gap: 6 }}>
+            <button className="primaire" onClick={() => statuer(s, true)}>
+              Valider
+            </button>
+            <button onClick={() => statuer(s, false)}>Refuser</button>
+          </div>
+        ) : s.statut === 'REFUSEE' ? (
+          <span className="muted">{s.motif_refus ?? '—'}</span>
+        ) : (
+          <div className="ligne" style={{ gap: 6 }}>
+            <button onClick={() => choisirCompany(s.id)}>Travailler dessus</button>
+            <button onClick={() => basculer(s)}>{s.active ? 'Suspendre' : 'Réactiver'}</button>
+          </div>
+        ),
     },
   ];
 
@@ -153,7 +213,16 @@ export default function Societes() {
 
       <div className="kpi-row" style={{ marginBottom: 18 }}>
         <Tile label="Sociétés" valeur={`${societes.length}`} />
-        <Tile label="Actives" valeur={`${societes.filter((s) => s.active).length}`} />
+        <Tile
+          label="En attente de validation"
+          valeur={`${societes.filter((s) => s.statut === 'EN_ATTENTE').length}`}
+          indice={
+            societes.some((s) => s.statut === 'EN_ATTENTE')
+              ? 'À traiter'
+              : 'Rien à traiter'
+          }
+        />
+        <Tile label="Actives" valeur={`${societes.filter((s) => s.statut === 'ACTIVE' && s.active).length}`} />
         <Tile
           label="Stations au total"
           valeur={`${societes.reduce((n, s) => n + (s.stations?.length ?? 0), 0)}`}

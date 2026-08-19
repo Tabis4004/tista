@@ -8,6 +8,7 @@ import 'package:tista/screens/pages/edit_client.dart';
 import 'package:tista/screens/pages/edit_company.dart';
 import 'package:tista/screens/vente/vente_bon.dart';
 import 'package:tista/screens/vente/vente_index.dart';
+import 'package:tista/screens/suivi/mes_stats.dart';
 import 'package:tista/screens/pages/edit_cuive.dart';
 import 'package:tista/screens/pages/edit_pompe.dart';
 import 'package:tista/screens/pages/edit_product.dart';
@@ -280,6 +281,12 @@ final GoRouter appRouter = GoRouter(
                 name: AppRouteConstants.venteBon,
                 builder: (BuildContext context, GoRouterState state) {
                   return const VenteBon();
+                }),
+            GoRoute(
+                path: '/mes-stats',
+                name: AppRouteConstants.mesStats,
+                builder: (BuildContext context, GoRouterState state) {
+                  return const MesStats();
                 }),
             GoRoute(
                 path: '/depense',

@@ -704,6 +704,23 @@ class SuiviRepository {
     }
   }
 
+  /// « Mes chiffres » : l'activité de l'utilisateur connecté.
+  ///
+  /// Ne demande aucun droit société : la fonction ne renvoie que les lignes
+  /// dont il est l'auteur, et l'identité vient du jeton — il n'y a donc rien à
+  /// autoriser, ni rien à contourner en changeant un paramètre.
+  Future<Map<String, dynamic>> mesStats({DateTime? debut, DateTime? fin}) async {
+    try {
+      final row = await db.rpc('mes_stats', params: {
+        'p_debut': debut == null ? null : CaisseRepository._date(debut),
+        'p_fin': fin == null ? null : CaisseRepository._date(fin),
+      });
+      return Map<String, dynamic>.from(row as Map);
+    } catch (e) {
+      throw DataException.from(e);
+    }
+  }
+
   /// Les chiffres globaux de la société sur une période.
   Future<Map<String, dynamic>> stats({
     DateTime? debut,

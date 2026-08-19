@@ -4,6 +4,7 @@ import { supabase } from './lib/supabase';
 import { SessionContext, useSession, chargerCompte, nomAffiche, aDroit } from './lib/session';
 import type { Compte } from './lib/session';
 import Login from './pages/Login';
+import DemandeSociete from './pages/DemandeSociete';
 import Dashboard from './pages/Dashboard';
 import Journal from './pages/Journal';
 import Operations from './pages/Operations';
@@ -79,7 +80,15 @@ export default function App() {
     <SessionContext.Provider
       value={{ compte, chargement, recharger, deconnexion, company, stations, choisirCompany }}
     >
-      {compte ? <Console /> : <Login />}
+      {!compte ? (
+        <Login />
+      ) : societes.length === 0 ? (
+        // Compte sans société : lui ouvrir une console vide n'aurait aucun
+        // sens. On lui montre la seule action possible.
+        <DemandeSociete />
+      ) : (
+        <Console />
+      )}
     </SessionContext.Provider>
   );
 }

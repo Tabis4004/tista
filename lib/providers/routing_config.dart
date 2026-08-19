@@ -46,6 +46,7 @@ class AppRouteConstants {
   static const String stats = 'stats';
   static const String venteIndex = 'vente-index';
   static const String venteBon = 'vente-bon';
+  static const String mesStats = 'mes-stats';
 
   static const String operation = 'operation';
   static const String depense = 'depense';

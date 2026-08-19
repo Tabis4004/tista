@@ -242,6 +242,9 @@ class _LoginFormState extends State<LoginForm> {
       switch (e.code) {
         case 'NO_USER':
           return 'Identifiant ou mot de passe incorrect.';
+        case 'SESSION_ABSENTE':
+          return 'Le compte a été créé mais la session ne s\'est pas ouverte. '
+              'Réessayez de vous connecter.';
         case 'USER_EXIST':
           return 'Un compte existe déjà avec cet identifiant.';
         case 'DISABLED':

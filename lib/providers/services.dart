@@ -382,28 +382,30 @@ class Services {
       if (token == null) return false;
       bool isOk = true;
 
-      bool res = await getCompanies(reset: reset);
-      if (!res) isOk = false;
-      if (callback != null) callback(20);
-
-      res = await getStations(reset: reset);
-      if (!res) isOk = false;
+      // Deux vagues, et non six appels à la file.
+      //
+      // Ces six chargements étaient enchaînés par `await` alors qu'ils ne
+      // dépendent pas les uns des autres : on additionnait six allers-retours
+      // réseau là où un seul temps de latence suffit. Sur la 3G d'une station,
+      // c'était plusieurs secondes d'écran figé au lancement — six cents
+      // millisecondes multipliées par six.
+      //
+      // Sociétés et stations restent en premier : le reste est filtré par
+      // société, donc l'ordre compte pour eux seuls.
+      final contexte = await Future.wait([
+        getCompanies(reset: reset),
+        getStations(reset: reset),
+      ]);
+      if (contexte.any((r) => r == false)) isOk = false;
       if (callback != null) callback(40);
 
-      res = await getCuives(reset: reset);
-      if (!res) isOk = false;
-      if (callback != null) callback(50);
-
-      res = await getPompes(reset: reset);
-      if (!res) isOk = false;
-      if (callback != null) callback(60);
-
-      res = await getCards(reset: reset);
-      if (!res) isOk = false;
-      if (callback != null) callback(85);
-
-      res = await getProducts(reset: reset);
-      if (!res) isOk = false;
+      final referentiel = await Future.wait([
+        getCuives(reset: reset),
+        getPompes(reset: reset),
+        getCards(reset: reset),
+        getProducts(reset: reset),
+      ]);
+      if (referentiel.any((r) => r == false)) isOk = false;
       if (callback != null) callback(90);
 
       try {
