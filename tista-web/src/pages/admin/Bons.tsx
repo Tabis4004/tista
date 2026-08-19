@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import { useSession } from '../../lib/session';
+import { useSession, aDroit } from '../../lib/session';
 import { messageErreur } from '../../lib/erreurs';
 import { montant, jour, dateHeure } from '../../lib/format';
 import { versCsv, telecharger } from '../../lib/csv';
@@ -43,7 +43,13 @@ const SELECT =
 const MAX = 500;
 
 export default function Bons() {
-  const { company, stations } = useSession();
+  const { compte, company, stations } = useSession();
+
+  // Émettre un bon, c'est écrire `card.write` en base. Un compte qui ne l'a
+  // pas — le pompiste, le comptable — voit la page (il doit pouvoir vérifier
+  // et lister les bons) mais pas le formulaire : un bouton qui ne peut
+  // qu'échouer se lit comme une panne, pas comme une permission manquante.
+  const peutEmettre = aDroit(compte, 'EDIT_CLIENT');
 
   const [bons, setBons] = useState<Bon[]>([]);
   const [entete, setEntete] = useState<EnteteBon>({});
@@ -293,6 +299,8 @@ export default function Bons() {
         <Tile label="Bons utilisés" valeur={`${totaux.utilises.length}`} />
       </div>
 
+      {peutEmettre ? (
+        <>
       <h2>Émettre</h2>
       <div className="card" style={{ padding: 16 }}>
         <div className="filtres" style={{ marginBottom: 0 }}>
@@ -334,6 +342,8 @@ export default function Bons() {
           nulle part en clair sur le papier.
         </p>
       </div>
+        </>
+      ) : null}
 
       <h2>Vérifier un bon</h2>
       <div className="card" style={{ padding: 16 }}>

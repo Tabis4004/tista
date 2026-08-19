@@ -1,6 +1,24 @@
 import { createContext, useContext } from 'react';
 import { supabase } from './supabase';
 
+/**
+ * Identité visuelle d'une société, rendue par `marque_company()`.
+ *
+ * Le nom du produit (TiSta+) et le nom de l'exploitant sont deux choses
+ * différentes. Les confondre — c'était le cas quand l'en-tête affichait une
+ * constante — fait croire à un utilisateur de GASSAMA OIL qu'il consulte les
+ * données d'EXPRESS OIL.
+ */
+export interface Marque {
+  id: string;
+  /** Nom commercial s'il existe, raison sociale sinon. */
+  nom: string;
+  raison_sociale: string;
+  logo: string | null;
+  contact: string | null;
+  adresse: string | null;
+}
+
 export interface Ref {
   id: string;
   uuid: string | null;
@@ -9,6 +27,8 @@ export interface Ref {
   /** Renseigné sur les stations : la société à laquelle elles appartiennent. */
   company_id?: string | null;
   active?: boolean;
+  /** Renseigné sur les sociétés. */
+  marque?: Marque | null;
 }
 
 export interface Compte {

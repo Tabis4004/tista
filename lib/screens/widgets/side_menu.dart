@@ -4,6 +4,8 @@ import '../../providers/routing_config.dart';
 import '../../providers/services.dart';
 import '../../providers/theme.dart';
 import '../../providers/utils.dart';
+import '../../data/auth_gateway.dart';
+import 'marque_company.dart';
 import 'profile_avatar.dart';
 import 'responsive_builder.dart';
 
@@ -36,16 +38,19 @@ class _SideMenuState extends State<SideMenu> {
           'page': AppRouteConstants.product,
           'droits': hasDroits(droits: ['PRDT'])
         },
-        /* {
+        {
           'icon': Icons.credit_card,
           'label': 'Cartes',
           'page': AppRouteConstants.card,
           'droits': hasDroits(droits: ['CARD'])
-        }, */
+        },
       ]
     },
     {
-      'label': appName,
+      // Le groupe des écrans propres à la société porte son nom, pas celui du
+      // produit — sans quoi « Utilisateurs » et « Clients » semblent
+      // appartenir à TiSta+ plutôt qu'à l'exploitant.
+      'label': AppSession.companyNom ?? "Ma société",
       'menus': [
         {
           'icon': Icons.door_front_door,
@@ -75,6 +80,12 @@ class _SideMenuState extends State<SideMenu> {
           'label': "Vente sur index",
           'page': AppRouteConstants.venteIndex,
           'droits': hasDroits(droits: ['EDIT_VENTE'])
+        },
+        {
+          'icon': Icons.confirmation_number,
+          'label': 'Émettre des bons',
+          'page': AppRouteConstants.bon,
+          'droits': hasDroits(droits: ['CARD'])
         },
         {
           'icon': Icons.qr_code_scanner,
@@ -135,15 +146,46 @@ class _SideMenuState extends State<SideMenu> {
         //elevation: Responsive.isDesktop(context) ? 0 : null,
         child: Column(children: [
       if (!Responsive.isDesktop(context))
-        UserAccountsDrawerHeader(
-            decoration: const BoxDecoration(color: appPrimaryColor),
-            currentAccountPicture:
-                const ProfileCard(size: 40, showDetails: false),
-            accountName:
-                Text(Services.user?.prenoms ?? Services.user?.name ?? '***'),
-            accountEmail: Services.user?.mail == null
-                ? null
-                : Text(Services.user!.mail!)),
+        Container(
+            width: double.infinity,
+            color: Colors.white,
+            child: SafeArea(
+                bottom: false,
+                child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const MarqueCompany(taille: 40),
+                          const SizedBox(height: 14),
+                          Row(children: [
+                            const ProfileCard(size: 34, showDetails: false),
+                            const SizedBox(width: 10),
+                            Expanded(
+                                child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                  Text(
+                                      Services.user?.prenoms ??
+                                          Services.user?.name ??
+                                          '***',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.w700)),
+                                  if (Services.user?.mail != null)
+                                    Text(Services.user!.mail!,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                            fontSize: 12,
+                                            color: tistaInkMuted)),
+                                ])),
+                          ]),
+                        ])))),
       Expanded(
           child: AnimatedBuilder(
               animation: GoRouter.of(context).routerDelegate,

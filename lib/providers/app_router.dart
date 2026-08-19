@@ -27,6 +27,7 @@ import '../screens/login/login.dart';
 import '../screens/login/otpverification.dart';
 import '../screens/pages/about.dart';
 import '../screens/pages/cartes.dart';
+import '../screens/pages/bons.dart';
 import '../screens/pages/clients.dart';
 import '../screens/pages/cuives.dart';
 import '../screens/pages/operations.dart';
@@ -225,6 +226,12 @@ final GoRouter appRouter = GoRouter(
                 name: AppRouteConstants.card,
                 builder: (BuildContext context, GoRouterState state) {
                   return const CartesPage();
+                }),
+            GoRoute(
+                path: '/bon',
+                name: AppRouteConstants.bon,
+                builder: (BuildContext context, GoRouterState state) {
+                  return const BonsPage();
                 }),
             GoRoute(
                 path: '/about',

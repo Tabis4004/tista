@@ -19,6 +19,7 @@ import 'providers/model.dart';
 import 'providers/routing_config.dart';
 import 'providers/services.dart';
 import 'providers/theme.dart';
+import 'data/auth_gateway.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -115,6 +116,13 @@ class _SplashScreenState extends State<SplashScreen> {
       Services.token = token;
       bool haveData = box.get('haveData', defaultValue: false);
       Services.user = UserAccount.addFromMap(user);
+
+      // Marque relue avant tout appel réseau : l'en-tête doit afficher la
+      // société dès la première frame, pas après le retour de `mon_compte()`.
+      final marque = box.get('marque');
+      if (marque is Map) {
+        AppSession.marque = Map<String, dynamic>.from(marque);
+      }
       if (!haveData) {
         context.goNamed(AppRouteConstants.init);
         return;

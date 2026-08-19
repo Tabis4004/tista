@@ -30,9 +30,9 @@ import '../data/data_exception.dart';
 import '../data/legacy_gateway.dart';
 import '../data/supabase_config.dart';
 
-const String appName = "Express Oil";
+const String appName = "TiSta+";
 const String appCode = "tista";
-const String appNameDescription = "";
+const String appNameDescription = "Gestion de station-service";
 const String isarDBName = 'tista_DB_0';
 
 class Services {
@@ -298,6 +298,12 @@ class Services {
     if (token != null) await Hive.box('settings').put('token', token!);
     user = UserAccount.addFromMap({'user': data['user']});
     await Hive.box('settings').put('user', data['user']);
+
+    // La marque est relue au démarrage, avant même que `mon_compte()` ait
+    // répondu : sans ce cache, l'en-tête affiche TiSta+ une seconde puis
+    // bascule sur le nom de la société, ce qui donne exactement le
+    // clignotement qu'on cherche à éviter.
+    await Hive.box('settings').put('marque', data['marque'] ?? {});
     await _saveRoles(roles: data['roles'] ?? []);
     await _saveDevices(devices: data['devices'] ?? []);
   }

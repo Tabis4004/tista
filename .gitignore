@@ -55,3 +55,4 @@ tista-web/.env.local
 
 # Dossier de travail temporaire (verification de compilation Java)
 _verif/
+tista-web/tsconfig.tsbuildinfo

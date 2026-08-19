@@ -10,7 +10,7 @@
 
     <!-- android:name="${applicationName}" -->
     <application
-        android:label="Express Oil"
+        android:label="TiSta+"
         android:name="utils.ApplicationContext"
         android:icon="@mipmap/ic_launcher">
         android:usesCleartextTraffic="true"

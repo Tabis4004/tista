@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { BrowserRouter, NavLink, Navigate, Route, Routes } from 'react-router-dom';
 import { supabase } from './lib/supabase';
 import { SessionContext, useSession, chargerCompte, nomAffiche, aDroit } from './lib/session';
-import type { Compte } from './lib/session';
+import type { Compte, Marque } from './lib/session';
 import Login from './pages/Login';
 import DemandeSociete from './pages/DemandeSociete';
 import Dashboard from './pages/Dashboard';
@@ -113,8 +113,19 @@ function Console() {
     <BrowserRouter>
       <div className="app">
         <nav className="sidebar">
+          {/* La marque de l'exploitant d'abord, le nom du logiciel ensuite.
+              L'inverse laissait croire à un employé de GASSAMA OIL qu'il
+              travaillait dans les données d'une autre société. */}
           <div className="brand">
-            TiSta+
+            <div className="brand-ligne">
+              <Vignette marque={company?.marque ?? null} nom={company?.name} />
+              <div className="brand-textes">
+                <strong>{company?.marque?.nom ?? company?.name ?? 'TiSta+'}</strong>
+                {/* Le nom du produit ne se répète pas quand c'est déjà lui
+                    qui occupe la ligne du dessus. */}
+                {company ? <small>TiSta+</small> : null}
+              </div>
+            </div>
             {societes.length > 1 ? (
               <select
                 className="selecteur-societe"
@@ -124,13 +135,11 @@ function Console() {
               >
                 {societes.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.name}
+                    {c.marque?.nom ?? c.name}
                   </option>
                 ))}
               </select>
-            ) : (
-              <small>{company?.name ?? '—'}</small>
-            )}
+            ) : null}
           </div>
 
           <Groupe titre="Exploitation">
@@ -233,5 +242,41 @@ function PiedDePage() {
       <div style={{ marginBottom: 8 }}>{nomAffiche(compte)}</div>
       <button onClick={deconnexion}>Se déconnecter</button>
     </div>
+  );
+}
+
+/** Initiales de repli : « GASSAMA OIL » -> « GO ». */
+function monogramme(nom: string): string {
+  const mots = nom.trim().split(/[\s\-_]+/).filter(Boolean);
+  if (mots.length === 0) return '?';
+  if (mots.length === 1) return mots[0].slice(0, 2).toUpperCase();
+  return (mots[0][0] + mots[1][0]).toUpperCase();
+}
+
+/**
+ * Logo de la société, ou son monogramme.
+ *
+ * Un logo absent ou cassé ne doit pas laisser un carré vide : le monogramme
+ * identifie déjà la société, et il ne dépend d'aucun réseau.
+ */
+function Vignette({ marque, nom }: { marque: Marque | null; nom?: string }) {
+  const [casse, setCasse] = useState(false);
+  const libelle = marque?.nom ?? nom ?? 'TiSta+';
+  const url = marque?.logo;
+
+  if (url && !casse) {
+    return (
+      <img
+        className="brand-logo"
+        src={url}
+        alt={libelle}
+        onError={() => setCasse(true)}
+      />
+    );
+  }
+  return (
+    <span className="brand-logo brand-mono" aria-hidden="true">
+      {nom || marque ? monogramme(libelle) : 'T+'}
+    </span>
   );
 }

@@ -5,6 +5,7 @@ import 'package:tista/providers/routing_config.dart';
 
 import '../../providers/services.dart';
 import '../../providers/theme.dart';
+import 'marque_company.dart';
 import 'profile_avatar.dart';
 import 'responsive_builder.dart';
 import 'search.dart';
@@ -50,21 +51,21 @@ class _HeaderState extends State<Header> {
                 onPressed: () {
                   Scaffold.of(context).openDrawer();
                 }),
-          if (Responsive.isDesktop(context))
-            const Padding(
-                padding: EdgeInsets.only(left: 22),
-                child: Icon(Icons.egg_alt, color: appPrimaryColor)),
-          InkWell(
-            onTap: () {
-              context.goNamed(AppRouteConstants.dashboard);
-            },
-            child: Padding(
-                padding: const EdgeInsets.only(left: 12, right: 22.0),
-                child:
-                    Text(appName, style: Theme.of(context).textTheme.titleLarge)
-                        .animate()
-                        .flip(duration: const Duration(milliseconds: 2000))
-                        .fadeIn()),
+          // L'en-tête porte la marque de la société connectée, pas le nom du
+          // produit : c'est ce qui distingue GASSAMA OIL d'EXPRESS OIL sur
+          // deux téléphones qui font tourner le même binaire.
+          Flexible(
+            child: InkWell(
+              onTap: () {
+                context.goNamed(AppRouteConstants.dashboard);
+              },
+              child: Padding(
+                  padding: EdgeInsets.only(
+                      left: Responsive.isDesktop(context) ? 22 : 6, right: 16),
+                  child: const MarqueCompany()
+                      .animate()
+                      .fadeIn(duration: const Duration(milliseconds: 400))),
+            ),
           ),
           if (!Responsive.isMobile(context))
             const Expanded(child: SearchField()),

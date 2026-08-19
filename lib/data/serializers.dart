@@ -18,7 +18,7 @@ class Select {
       'legacy_id, uuid, name, solde_marchands, metadata, created_at';
 
   static const station =
-      'legacy_id, uuid, name, adresse, caisse_initiale, solde_marchands, metadata, '
+      'id, legacy_id, uuid, name, adresse, caisse_initiale, solde_marchands, metadata, '
       'company:companies(uuid), cuves(count), pompes(count)';
 
   static const product =
@@ -34,19 +34,19 @@ class Select {
       'station:stations(uuid), product:products(uuid)';
 
   static const pompe =
-      'legacy_id, uuid, name, station:stations(uuid), '
-      'pistolets(legacy_id, code, name, index_depart, index_courant, cuve:cuves(uuid))';
+      'id, legacy_id, uuid, name, station:stations(uuid), '
+      'pistolets(id, legacy_id, code, name, index_depart, index_courant, cuve:cuves(uuid))';
 
   static const client =
-      'legacy_id, uuid, name, prenoms, phone, mail, active, metadata, created_at, '
+      'id, legacy_id, uuid, name, prenoms, phone, mail, active, metadata, created_at, '
       'company:companies(uuid), cards(count)';
 
   static const card =
-      'legacy_id, code, solde, plafond, active, metadata, created_at, '
+      'id, legacy_id, code, solde, plafond, active, metadata, created_at, '
       'company:companies(uuid), client:clients($_clientLight)';
 
   static const _clientLight =
-      'legacy_id, uuid, name, prenoms, phone, mail, active, metadata';
+      'id, legacy_id, uuid, name, prenoms, phone, mail, active, metadata';
 
   static const role = 'legacy_id, uuid, name, droits_app, created_at, '
       'company:companies(uuid)';
@@ -113,6 +113,14 @@ Map<String, dynamic> _meta(dynamic metadata) {
 
 // ---------------------------------------------------------------------------
 // Sérialiseurs par entité
+//
+// Deux identifiants cohabitent, et les confondre casse silencieusement les RPC.
+// `id` est la clé HISTORIQUE (`legacy_id`, un entier) : c'est celle que les
+// écrans hérités affichent et comparent, on ne peut pas la leur retirer.
+// `pk` est la clé PRIMAIRE Postgres (un uuid) : c'est la seule que les
+// fonctions `utiliser_bon`, `vente_sur_index`, `emettre_bons` acceptent.
+// Passer `id` là où `pk` est attendu produit `22P02 invalid input syntax for
+// type uuid` — une erreur qui ressemble à une panne réseau côté écran.
 // ---------------------------------------------------------------------------
 
 Map<String, dynamic> companyJson(Map row) => {
@@ -127,6 +135,7 @@ Map<String, dynamic> companyJson(Map row) => {
 Map<String, dynamic> stationJson(Map row) => {
       ..._meta(row['metadata']),
       'id': row['legacy_id'],
+      'pk': row['id'],
       'uuid': row['uuid'],
       'name': row['name'] ?? '',
       'adresse': row['adresse'],
@@ -171,6 +180,7 @@ Map<String, dynamic> cuiveJson(Map row) => {
 
 Map<String, dynamic> pistoletJson(Map row) => {
       'id': row['legacy_id'],
+      'pk': row['id'],
       'code': row['code'] ?? '',
       'name': row['name'] ?? row['code'] ?? '',
       'index': strOr(row['index_courant']),
@@ -182,6 +192,7 @@ Map<String, dynamic> pompeJson(Map row) {
   final pistolets = (row['pistolets'] as List?) ?? const [];
   return {
     'id': row['legacy_id'],
+    'pk': row['id'],
     'uuid': row['uuid'],
     'name': row['name'] ?? '',
     'station': rel(row['station']) ?? '',
@@ -193,6 +204,7 @@ Map<String, dynamic> pompeJson(Map row) {
 Map<String, dynamic> clientJson(Map row) => {
       ..._meta(row['metadata']),
       'id': row['legacy_id'],
+      'pk': row['id'],
       'uuid': row['uuid'],
       'name': row['name'] ?? '',
       'prenoms': row['prenoms'],
@@ -215,6 +227,7 @@ Map<String, dynamic> cardJson(Map row) {
   return {
     ...meta,
     'id': row['legacy_id'],
+    'pk': row['id'],
     // L'app appelle `uuid` ce que la base nomme `code` (numéro de carte).
     'uuid': row['code'] ?? '',
     'solde': strOr(row['solde']),

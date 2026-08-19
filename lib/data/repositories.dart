@@ -256,6 +256,61 @@ class CardRepository extends BaseRepository<Map<String, dynamic>> {
     }
   }
 
+  /// Émettre une carte pour un client, désigné par sa clé métier `uuid`.
+  ///
+  /// La company n'est pas demandée à l'appelant : elle est lue sur le client.
+  /// Une carte rattachée à une autre société que son porteur serait refusée
+  /// par le trigger `tg_cards_check_company`, autant ne jamais la construire.
+  Future<Map<String, dynamic>> emettre({
+    required String clientUuid,
+    required String code,
+    num? plafond,
+    Map<String, dynamic> metadata = const {},
+  }) async {
+    try {
+      final client = await db
+          .from('clients')
+          .select('id, company_id')
+          .eq('uuid', clientUuid)
+          .maybeSingle();
+      if (client == null) {
+        throw const DataException('NOT_FOUND', 'Client introuvable');
+      }
+      final row = await db
+          .from(table)
+          .insert({
+            'company_id': client['company_id'],
+            'client_id': client['id'],
+            'code': code,
+            if (plafond != null) 'plafond': plafond,
+            'metadata': metadata,
+          })
+          .select(selectColumns)
+          .single();
+      return fromRow(row);
+    } catch (e) {
+      throw DataException.from(e);
+    }
+  }
+
+  /// Suspendre ou réactiver une carte, désignée par son code.
+  ///
+  /// Par le code et non par l'identifiant : `Select.card` ne descend pas la
+  /// clé primaire, et `cards.code` est unique sur toute la base.
+  Future<Map<String, dynamic>> changerEtat(String code, bool active) async {
+    try {
+      final row = await db
+          .from(table)
+          .update({'active': active})
+          .eq('code', code)
+          .select(selectColumns)
+          .single();
+      return fromRow(row);
+    } catch (e) {
+      throw DataException.from(e);
+    }
+  }
+
   /// Solde de la carte en temps réel (écran de vente).
   Stream<num> watchSolde(String cardId) {
     return db
@@ -591,6 +646,80 @@ class BonRepository {
     try {
       final row = await db.rpc('verifier_bon', params: {'p_code': code});
       return Map<String, dynamic>.from(row as Map);
+    } catch (e) {
+      throw DataException.from(e);
+    }
+  }
+
+  /// Émettre un lot de bons, et les renvoyer avec leur secret.
+  ///
+  /// Le secret n'est lisible qu'ici, à l'émission : c'est lui qui distingue
+  /// l'original d'une photocopie, et il n'est imprimé nulle part en clair.
+  /// Qui ne l'imprime pas maintenant ne le retrouvera pas ensuite — la liste
+  /// des bons ne le redescend pas.
+  Future<List<Map<String, dynamic>>> emettre({
+    required num montant,
+    int nombre = 1,
+    String? stationId,
+    String? clientId,
+    String? productId,
+    DateTime? expiration,
+    Map<String, dynamic> metadata = const {},
+  }) async {
+    final company = AppSession.companyId;
+    if (company == null) {
+      throw const DataException('NO_COMPANY', 'Aucune société sélectionnée');
+    }
+    try {
+      final rows = await db.rpc('emettre_bons', params: {
+        'p_company': company,
+        'p_montant': montant,
+        'p_nombre': nombre,
+        'p_station': stationId,
+        'p_client': clientId,
+        'p_product': productId,
+        'p_expiration': expiration == null
+            ? null
+            : expiration.toIso8601String().substring(0, 10),
+        'p_metadata': metadata,
+      });
+      return (rows as List).map((r) => Map<String, dynamic>.from(r as Map)).toList();
+    } catch (e) {
+      throw DataException.from(e);
+    }
+  }
+
+  /// Les bons de la société, du plus récent au plus ancien.
+  ///
+  /// `secret` n'est volontairement pas demandé : le réimprimer depuis la liste
+  /// permettrait de fabriquer un original à partir d'un bon déjà distribué.
+  Future<List<Map<String, dynamic>>> lister({
+    String? statut,
+    int limite = 50,
+  }) async {
+    final company = AppSession.companyId;
+    if (company == null) return [];
+    try {
+      var q = db
+          .from('bons')
+          .select('serie, montant, statut, date_emission, date_expiration, '
+              'utilise_at, client:clients(name, prenoms), station:stations(name)')
+          .eq('company_id', company);
+      if (statut != null) q = q.eq('statut', statut);
+      final rows = await q.order('date_emission', ascending: false).limit(limite);
+      return rows.map((r) => Map<String, dynamic>.from(r)).toList();
+    } catch (e) {
+      throw DataException.from(e);
+    }
+  }
+
+  /// En-tête à imprimer sur le bon : nom de la société, contact, mentions.
+  Future<Map<String, dynamic>> entete() async {
+    final company = AppSession.companyId;
+    if (company == null) return {};
+    try {
+      final row = await db.rpc('entete_bon', params: {'p_company': company});
+      return row == null ? {} : Map<String, dynamic>.from(row as Map);
     } catch (e) {
       throw DataException.from(e);
     }

@@ -30,6 +30,7 @@ class AppRouteConstants {
 
   static const String station = 'station';
   static const String card = 'card';
+  static const String bon = 'bon';
   static const String editCard = 'edit-card';
 
   static const String about = 'about';

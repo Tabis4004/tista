@@ -31,8 +31,17 @@ interface Prix extends Record<string, unknown> {
 }
 
 const CHAMPS_MARQUE: { cle: string; label: string; aide?: string; long?: boolean }[] = [
+  {
+    cle: 'nom_commercial',
+    label: 'Nom commercial',
+    aide: "Affiché dans l'application et sur les bons. Vide = la raison sociale.",
+  },
   { cle: 'prefixe_bon', label: 'Préfixe des bons', aide: 'Ex. « EO » donne EO-2026-000042' },
-  { cle: 'logo_url', label: 'URL du logo', aide: 'Image accessible publiquement, imprimée sur le bon' },
+  {
+    cle: 'logo_url',
+    label: 'URL du logo',
+    aide: "Image carrée accessible publiquement : en-tête de l'app et des bons",
+  },
   { cle: 'contact', label: 'Contact' },
   { cle: 'adresse', label: 'Adresse' },
   { cle: 'mention_legale', label: 'Mention légale', long: true },
@@ -112,7 +121,10 @@ export default function Societe() {
         .update({ metadata: fusion })
         .eq('id', company.id);
       if (error) throw error;
-      setSucces('Identité de la société enregistrée. Les prochains bons imprimés en tiendront compte.');
+      setSucces(
+        "Identité enregistrée. Elle s'applique à l'en-tête de l'application " +
+          'et aux prochains bons imprimés.',
+      );
       await charger();
     } catch (e) {
       setErreur(messageErreur(e));
@@ -220,7 +232,11 @@ export default function Societe() {
       {erreur ? <Alerte type="erreur">{erreur}</Alerte> : null}
       {succes ? <Alerte type="succes">{succes}</Alerte> : null}
 
-      <h2>Identité imprimée sur les bons</h2>
+      <h2>Identité de la société</h2>
+      <p className="muted" style={{ marginTop: -4 }}>
+        Le nom et le logo saisis ici sont ce que voient vos employés en haut de leur écran, et
+        ce qui s'imprime sur vos bons. « TiSta+ » reste le nom du logiciel, en second rang.
+      </p>
       <div className="card" style={{ padding: 16 }}>
         <div className="grille-champs">
           {CHAMPS_MARQUE.map((f) => (

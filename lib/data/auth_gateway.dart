@@ -26,6 +26,32 @@ class AppSession {
 
   static bool isSuperadmin = false;
 
+  /// Identité visuelle de la société courante, telle que rendue par
+  /// `marque_company()` : `nom`, `raison_sociale`, `logo`, `contact`,
+  /// `adresse`.
+  ///
+  /// L'en-tête affichait jusqu'ici `appName`, une constante compilée dans le
+  /// binaire. Un employé de GASSAMA OIL y lisait donc le nom d'une autre
+  /// société et pensait consulter ses données. Le nom de l'application et la
+  /// marque de la société sont deux choses distinctes : la première est fixe,
+  /// la seconde vient de la base et change avec le compte connecté.
+  static Map<String, dynamic> marque = {};
+
+  /// Sociétés visibles par l'utilisateur (une seule dans le cas courant).
+  static List<Map<String, dynamic>> companies = [];
+
+  /// Nom d'affichage de la société, ou `null` si l'utilisateur n'en a aucune.
+  static String? get companyNom {
+    final n = '${marque['nom'] ?? ''}'.trim();
+    return n.isEmpty ? null : n;
+  }
+
+  /// URL du logo de la société, ou `null`.
+  static String? get companyLogo {
+    final l = '${marque['logo'] ?? ''}'.trim();
+    return l.isEmpty ? null : l;
+  }
+
   static void clear() {
     profile = null;
     companyId = null;
@@ -34,6 +60,8 @@ class AppSession {
     stationUuids = [];
     droits = [];
     isSuperadmin = false;
+    marque = {};
+    companies = [];
   }
 
   static bool has(String droit) => isSuperadmin || droits.contains(droit);
@@ -196,6 +224,7 @@ class AuthGateway {
     AppSession.droits = droits;
 
     String? companyId, companyUuid, roleUuid;
+    Map<String, dynamic>? marque;
     final stationIds = <String>[], stationUuids = <String>[];
     final rolesJson = <Map<String, dynamic>>[];
 
@@ -207,6 +236,9 @@ class AuthGateway {
 
       companyId ??= company?['id']?.toString();
       companyUuid ??= company?['uuid']?.toString();
+      if (marque == null && company?['marque'] is Map) {
+        marque = Map<String, dynamic>.from(company!['marque'] as Map);
+      }
       roleUuid ??= role?['uuid']?.toString();
 
       if (station != null) {
@@ -234,6 +266,23 @@ class AuthGateway {
       if (u != null && !stationUuids.contains(u)) stationUuids.add(u);
     }
 
+    AppSession.companies = [
+      for (final c in (compte['companies'] as List?) ?? const [])
+        Map<String, dynamic>.from(c as Map)
+    ];
+
+    // La marque suit la société du rôle. Si aucun rôle n'en porte — cas d'un
+    // compte sans affectation — on retombe sur la première société visible,
+    // et à défaut sur rien du tout : l'en-tête affiche alors TiSta+, ce qui
+    // est exact plutôt qu'arbitraire.
+    marque ??= AppSession.companies.isEmpty
+        ? null
+        : (AppSession.companies.first['marque'] is Map
+            ? Map<String, dynamic>.from(
+                AppSession.companies.first['marque'] as Map)
+            : {'nom': AppSession.companies.first['name']});
+
+    AppSession.marque = marque ?? {};
     AppSession.companyId = companyId;
     AppSession.companyUuid = companyUuid;
     AppSession.stationIds = stationIds;
@@ -258,7 +307,13 @@ class AuthGateway {
       'createdAt': epoch(profil['created_at']),
     };
 
-    return {'user': user, 'roles': rolesJson, 'devices': const []};
+    return {
+      'user': user,
+      'roles': rolesJson,
+      'devices': const [],
+      'marque': AppSession.marque,
+      'companies': AppSession.companies,
+    };
   }
 
   static Future<void> logout() async {

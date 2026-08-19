@@ -59,7 +59,10 @@ class _VenteBonState extends State<VenteBon> {
       if (!mounted) return;
       setState(() {
         _stations = page.items;
-        _stationId ??= _stations.isNotEmpty ? '${_stations.first['id']}' : null;
+        // `pk` et non `id` : `utiliser_bon` attend l'uuid de la station.
+        // `id` est la clé historique (un entier) et produisait
+        // « invalid input syntax for type uuid ».
+        _stationId ??= _stations.isNotEmpty ? '${_stations.first['pk']}' : null;
       });
     } catch (e) {
       if (mounted) showToast(context, messageDe(e));

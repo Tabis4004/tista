@@ -53,7 +53,8 @@ class _VenteIndexState extends State<VenteIndex> {
       if (!mounted) return;
       setState(() {
         _stations = page.items;
-        _stationId ??= _stations.isNotEmpty ? '${_stations.first['id']}' : null;
+        // `pk` : l'uuid Postgres. Voir la note en tête de serializers.dart.
+        _stationId ??= _stations.isNotEmpty ? '${_stations.first['pk']}' : null;
       });
       if (_stationId != null) _chargerPistolets();
     } catch (e) {
@@ -125,7 +126,7 @@ class _VenteIndexState extends State<VenteIndex> {
     setState(() => _occupe = true);
     try {
       final op = await VenteRepository()
-          .surIndex(pistoletId: '${pistolet['id']}', indexFin: fin);
+          .surIndex(pistoletId: '${pistolet['pk']}', indexFin: fin);
       if (!mounted) return;
       await _montrerRecapitulatif(op);
       // Ces écrans sont atteints de deux façons : empilés depuis la tuile
@@ -212,7 +213,7 @@ class _VenteIndexState extends State<VenteIndex> {
                     value: _stationId,
                     items: _stations
                         .map((s) => DropdownMenuItem<String>(
-                            value: '${s['id']}', child: Text('${s['name']}')))
+                            value: '${s['pk']}', child: Text('${s['name']}')))
                         .toList(),
                     onChanged: (v) {
                       setState(() => _stationId = v);
@@ -245,15 +246,15 @@ class _VenteIndexState extends State<VenteIndex> {
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
                     isExpanded: true,
-                    value: _pistolet == null ? null : '${_pistolet!['id']}',
+                    value: _pistolet == null ? null : '${_pistolet!['pk']}',
                     items: _pistolets
                         .map((p) => DropdownMenuItem<String>(
-                            value: '${p['id']}',
+                            value: '${p['pk']}',
                             child: Text('${p['code']}'
                                 '${p['pompe'] is Map ? ' — ${(p['pompe'] as Map)['name']}' : ''}')))
                         .toList(),
                     onChanged: (v) => setState(() {
-                      _pistolet = _pistolets.firstWhere((p) => '${p['id']}' == v);
+                      _pistolet = _pistolets.firstWhere((p) => '${p['pk']}' == v);
                     }),
                   ),
                 ),

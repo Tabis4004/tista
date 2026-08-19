@@ -85,17 +85,50 @@ a { color: var(--accent-ink); }
 }
 
 .brand {
-  font-weight: 800;
-  letter-spacing: 0.4px;
-  font-size: 17px;
   padding: 4px 12px 18px;
+}
+.brand-ligne {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.brand-textes { min-width: 0; }
+.brand-textes strong {
+  display: block;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  font-size: 16px;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .brand small {
   display: block;
-  font-weight: 400;
-  font-size: 12px;
+  font-weight: 600;
+  font-size: 11px;
   color: var(--ink-muted);
-  letter-spacing: 0;
+  letter-spacing: 0.3px;
+}
+/* Carré du logo : même gabarit qu'il porte une image ou deux initiales, pour
+   que la barre ne bouge pas selon qu'une société a renseigné son logo. */
+.brand-logo {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border-radius: 10px;
+  object-fit: cover;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.brand-mono {
+  background: var(--accent-wash);
+  color: var(--serie-1);
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.5px;
 }
 
 .nav-link {
