@@ -307,8 +307,37 @@ class Services {
       await getDeviceInfo();
     }
     final data = await AuthGateway.login(model);
+
+    // Un compte différent du précédent : on repart d'un cache vide.
+    //
+    // Sans cela, les cartes, clients et stations du gérant restaient lisibles
+    // hors ligne par le pompiste qui se connecte après lui sur le même
+    // téléphone. La RLS protège le serveur, elle ne protège pas ce qui est
+    // déjà descendu sur l'appareil.
+    final ancien = Hive.box('settings').get('user');
+    final nouveau = data['user'];
+    if (ancien is Map && nouveau is Map && ancien['uuid'] != nouveau['uuid']) {
+      await _viderCacheLocal();
+    }
+
     await _applySession(data);
     return ResponseWrapper(Headers(), data, 200);
+  }
+
+  /// Efface les données métier locales, sans toucher à la session en cours.
+  Future<void> _viderCacheLocal() async {
+    try {
+      await isar.writeTxn(() async {
+        await isar.clear();
+      });
+      final box = Hive.box('settings');
+      for (final cle in ['stats', 'settings', 'haveData']) {
+        await box.delete(cle);
+      }
+    } catch (_) {
+      // Un cache qu'on n'a pas pu vider n'empêche pas de se connecter : les
+      // écrans se rechargeront depuis le serveur.
+    }
   }
 
   Future<ResponseWrapper> checkUserAccount({required String uuid}) async {
@@ -824,9 +853,19 @@ class Services {
     });
   }
 
+  /// Remplace les rôles en cache par ceux du compte connecté.
+  ///
+  /// Le `return` sur liste vide qui se trouvait ici laissait en place les rôles
+  /// de l'utilisateur PRÉCÉDENT. Sur un téléphone de station, partagé entre le
+  /// gérant et les pompistes, le suivant héritait des menus du précédent :
+  /// la base refusait ses requêtes, mais l'interface lui montrait des entrées
+  /// qui ne le regardaient pas — ce qui suffit à faire croire à un droit.
+  ///
+  /// On efface donc systématiquement avant d'écrire, y compris quand le compte
+  /// n'a aucun rôle : c'est précisément ce cas qui était dangereux.
   Future _saveRoles({required List roles}) async {
-    if (roles.isEmpty) return;
     await isar.writeTxn(() async {
+      await isar.roleModels.clear();
       for (var role in roles) {
         //print('role $role');
         try {

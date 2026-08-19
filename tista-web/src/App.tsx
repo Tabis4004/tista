@@ -107,7 +107,7 @@ function Console() {
   // d'exploitation. Le comptable n'y a pas sa place ; le gérant réseau si.
   const voitUtilisateurs = aDroit(compte, 'USERS') || aDroit(compte, 'ROLE');
   const voitSociete = aDroit(compte, 'EDIT_COMP');
-  const admin = voitUtilisateurs || voitSociete || superadmin;
+  const admin = voitUtilisateurs || voitSociete;
 
   return (
     <BrowserRouter>
@@ -150,12 +150,23 @@ function Console() {
             </Groupe>
           ) : null}
 
+          {/* Deux administrations distinctes, et c'est volontaire.
+              « Ma société » regroupe ce qu'un propriétaire règle chez lui :
+              ses employés, son identité, son matériel. « Plateforme » regroupe
+              ce qui décide du parc entier — accepter une société, en suspendre
+              une. Les mélanger laissait croire à un administrateur de société
+              qu'il touchait à des réglages généraux. */}
           {admin ? (
-            <Groupe titre="Administration">
-              {superadmin ? <Lien to="/admin/societes" libelle="Sociétés" /> : null}
+            <Groupe titre="Ma société">
               {voitUtilisateurs ? <Lien to="/admin/utilisateurs" libelle="Utilisateurs" /> : null}
-              {voitSociete ? <Lien to="/admin/societe" libelle="Société" /> : null}
+              {voitSociete ? <Lien to="/admin/societe" libelle="Identité et stations" /> : null}
               {voitSociete ? <Lien to="/admin/referentiel" libelle="Référentiel" /> : null}
+            </Groupe>
+          ) : null}
+
+          {superadmin ? (
+            <Groupe titre="Plateforme">
+              <Lien to="/admin/societes" libelle="Sociétés" />
             </Groupe>
           ) : null}
 

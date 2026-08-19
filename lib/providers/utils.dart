@@ -364,10 +364,16 @@ Future<String?> showAlert(context, msg,
 bool hasDroits({required List<String> droits, String? company}) {
   if (Services.user?.isAdmin == true) return true;
 
+  // Un compte sans rôle n'a aucun droit. Sans ce test, la requête partait avec
+  // `uuidEqualTo('')` — une chaîne vide qui, si un rôle mal formé traînait en
+  // cache avec un uuid vide, aurait accordé ses droits à n'importe qui.
+  final role = Services.user?.role;
+  if (role == null || role.trim().isEmpty) return false;
+
   QueryBuilder<RoleModel, RoleModel, QAfterFilterCondition> anyOf;
   anyOf = Services.isar.roleModels
       .filter()
-      .uuidEqualTo(Services.user?.role ?? '')
+      .uuidEqualTo(role)
       .and()
       .anyOf(droits, (q, d) => q.droitsElementEqualTo(d));
   //print("${Services.user?.uuid} $droits ${anyOf.countSync()}");

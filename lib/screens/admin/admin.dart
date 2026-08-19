@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
 import 'package:tista/providers/extension.dart';
 import 'package:tista/providers/theme.dart';
+import 'package:tista/providers/utils.dart';
 import 'package:tista/screens/widgets/responsive_builder.dart';
 
 import '../../providers/services.dart';
@@ -24,22 +24,25 @@ class _AdminPageState extends State<AdminPage> {
   @override
   void initState() {
     super.initState();
-    Map user = Hive.box('settings').get('user', defaultValue: {});
-    isAdmin = (user['roles'] ?? []).contains('ADMIN');
+    // Le drapeau vient de la session en cours, pas d'un cache Hive qui pouvait
+    // dater du compte précédent. Et il cherche 'SUPERADMIN' — 'ADMIN' n'existe
+    // dans aucun rôle du système, donc ce test était toujours faux.
+    isAdmin = Services.instance.isAdmin;
 
     if (isAdmin) {
       // tabs.add({"label": "Pays", 'page': const CountryPage()});
     }
 
-    /* if (hasDroits(droits: ['PRODUCT'])) {
-      tabs.add({"label": "Produits", 'page': const ProductPage()});
-    } */
-    //if (hasDroits(droits: ['ROLE'])) {
-    tabs.add({"label": "Roles", 'page': const RolePage()});
-    //}
-    //if (hasDroits(droits: ['USERS'])) {
-    tabs.add({"label": "Users", 'page': const UsersPage()});
-    //}
+    // Les rôles sont globaux : les modifier change ce que peuvent faire les
+    // employés de TOUTES les sociétés. Réservé au superadmin, et pas seulement
+    // dans le menu — un onglet accessible par un autre chemin resterait une
+    // porte ouverte.
+    if (isAdmin) {
+      tabs.add({"label": "Roles", 'page': const RolePage()});
+    }
+    if (isAdmin || hasDroits(droits: ['USERS'])) {
+      tabs.add({"label": "Users", 'page': const UsersPage()});
+    }
     //if (hasDroits(droits: ['STATS'])) {
     tabs.add({"label": "Stats", 'page': const StatsPage(appBar: false)});
     //}

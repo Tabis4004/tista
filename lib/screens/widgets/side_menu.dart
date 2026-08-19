@@ -109,13 +109,19 @@ class _SideMenuState extends State<SideMenu> {
       ]
     },
     {
-      'label': "Paramètres",
+      // Administrer la plateforme n'est pas administrer une société.
+      //
+      // Cette entrée ouvre les rôles globaux — ceux qui définissent ce que
+      // peuvent faire tous les employés de toutes les sociétés. Elle ne
+      // regarde donc que le superadmin. Un propriétaire de société gère ses
+      // employés par l'entrée « Utilisateurs », qui reste la sienne.
+      'label': "Plateforme",
       'menus': [
         {
           'icon': Icons.admin_panel_settings,
           'label': 'Administration',
           'page': AppRouteConstants.admin,
-          'droits': hasDroits(droits: ['ROLE', 'SETTINGS'])
+          'droits': Services.instance.isAdmin
         }
       ]
     }
