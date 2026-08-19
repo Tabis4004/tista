@@ -12,11 +12,11 @@ Future<ModeVente?> choisirModeVente(BuildContext context) {
   return showModalBottomSheet<ModeVente>(
     context: context,
     showDragHandle: true,
-    builder: (context) => SafeArea(
+    builder: (context) => const SafeArea(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Padding(
+          Padding(
             padding: EdgeInsets.fromLTRB(20, 4, 20, 12),
             child: Text('Comment le client paie-t-il ?',
                 style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
@@ -39,7 +39,7 @@ Future<ModeVente?> choisirModeVente(BuildContext context) {
             detail: 'Scan du QR ou saisie du numéro de série',
             mode: ModeVente.bon,
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
         ],
       ),
     ),

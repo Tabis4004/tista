@@ -24,13 +24,18 @@ import 'supabase_config.dart';
 /// ```
 
 /// Page de résultats avec son total, pour brancher `PaginationLine` sans effort.
-class Page<T> {
+///
+/// Pas `Page` tout court : Flutter expose déjà une classe `Page` par
+/// `material.dart`, et tout écran important à la fois Material et ce fichier
+/// se heurterait à une ambiguïté de nom. Le préfixe coûte cinq caractères et
+/// évite le piège à chaque nouvel écran.
+class PageResultat<T> {
   final List<T> items;
   final int total;
   final int page;
   final int size;
 
-  const Page({
+  const PageResultat({
     required this.items,
     required this.total,
     required this.page,
@@ -40,6 +45,15 @@ class Page<T> {
   bool get hasNext => page * size < total;
   int get pageCount => size == 0 ? 1 : ((total + size - 1) ~/ size);
 }
+
+/// Signature d'un filtre PostgREST.
+///
+/// Le type générique est explicite et non `dynamic` : `db.from(t).select(...)`
+/// renvoie un `PostgrestFilterBuilder<List<Map<String, dynamic>>>`, et Dart
+/// refuse d'y réassigner un `PostgrestFilterBuilder<dynamic>`. Écrire le type
+/// au long est le seul moyen que le résultat du filtre reste assignable.
+typedef FiltrePostgrest = PostgrestFilterBuilder<List<Map<String, dynamic>>>
+    Function(PostgrestFilterBuilder<List<Map<String, dynamic>>> query);
 
 /// Base commune : pagination, mapping, gestion d'erreurs.
 abstract class BaseRepository<T> {
@@ -51,14 +65,14 @@ abstract class BaseRepository<T> {
 
   T fromRow(Map row);
 
-  Future<Page<T>> list({
+  Future<PageResultat<T>> list({
     int page = 1,
     int size = 25,
     String? orderBy,
     bool ascending = true,
     // Les builders PostgREST sont immuables : un filtre doit RENVOYER le
     // builder modifié, sinon `q.eq(...)` est sans effet.
-    PostgrestFilterBuilder Function(PostgrestFilterBuilder query)? filter,
+    FiltrePostgrest? filter,
   }) async {
     try {
       var query = db.from(table).select(selectColumns);
@@ -68,7 +82,7 @@ abstract class BaseRepository<T> {
           .order(orderBy ?? defaultOrder, ascending: ascending)
           .range(from, from + size - 1)
           .count(CountOption.exact);
-      return Page(
+      return PageResultat(
         items: res.data.map((r) => fromRow(r)).toList(),
         total: res.count,
         page: page,
@@ -207,7 +221,7 @@ class ClientRepository extends BaseRepository<Map<String, dynamic>> {
   @override
   Map<String, dynamic> fromRow(Map row) => clientJson(row);
 
-  Future<Page<Map<String, dynamic>>> search(String terme,
+  Future<PageResultat<Map<String, dynamic>>> search(String terme,
       {int page = 1, int size = 25}) {
     final motif = '%$terme%';
     return list(
@@ -272,7 +286,7 @@ class OperationRepository extends BaseRepository<Map<String, dynamic>> {
   @override
   Map<String, dynamic> fromRow(Map row) => operationJson(row);
 
-  Future<Page<Map<String, dynamic>>> historique({
+  Future<PageResultat<Map<String, dynamic>>> historique({
     List<String> stationIds = const [],
     DateTime? debut,
     DateTime? fin,
@@ -605,4 +619,96 @@ class BonRepository {
       throw DataException.from(e);
     }
   }
+}
+
+// =============================================================================
+// Suivi à distance
+//
+// Ce que le propriétaire regarde depuis son téléphone, sans être en station et
+// sans terminal. Les trois fonctions ci-dessous agrègent côté Postgres : la
+// taille de la réponse dépend du nombre de jours affichés, pas du volume
+// d'opérations. Une station qui fait 400 ventes par jour coûte le même transfert
+// qu'une station qui en fait 4 — ce qui compte sur un réseau mobile.
+// =============================================================================
+
+class SuiviRepository {
+  SupabaseClient get db => SupabaseConfig.client;
+
+  String? get _company => AppSession.companyId;
+
+  /// Ventes, recharges et dépenses par jour, jours vides compris.
+  ///
+  /// Les jours sans activité sont produits par la base et non déduits des
+  /// données : sans eux, le graphique relierait deux dates non contiguës, ce
+  /// qui se lit comme une continuité qui n'existe pas.
+  Future<List<Map<String, dynamic>>> serie({
+    DateTime? debut,
+    DateTime? fin,
+    String? companyId,
+  }) async {
+    final id = companyId ?? _company;
+    if (id == null) {
+      throw const DataException('NO_COMPANY', 'Aucune société rattachée');
+    }
+    try {
+      final rows = await db.rpc('serie_journaliere', params: {
+        'p_company': id,
+        'p_debut': debut == null ? null : CaisseRepository._date(debut),
+        'p_fin': fin == null ? null : CaisseRepository._date(fin),
+      });
+      return List<Map<String, dynamic>>.from(
+          (rows as List).map((r) => Map<String, dynamic>.from(r as Map)));
+    } catch (e) {
+      throw DataException.from(e);
+    }
+  }
+
+  /// Recette décomposée par mode de règlement, une ligne par jour et station.
+  Future<List<Map<String, dynamic>>> recettePeriode({
+    DateTime? debut,
+    DateTime? fin,
+    String? stationId,
+    String? companyId,
+  }) async {
+    final id = companyId ?? _company;
+    if (id == null) {
+      throw const DataException('NO_COMPANY', 'Aucune société rattachée');
+    }
+    try {
+      final rows = await db.rpc('recette_periode', params: {
+        'p_company': id,
+        'p_debut': debut == null ? null : CaisseRepository._date(debut),
+        'p_fin': fin == null ? null : CaisseRepository._date(fin),
+        'p_station': stationId,
+      });
+      return List<Map<String, dynamic>>.from(
+          (rows as List).map((r) => Map<String, dynamic>.from(r as Map)));
+    } catch (e) {
+      throw DataException.from(e);
+    }
+  }
+
+  /// Le détail d'une journée pour une station : espèces, carte, bon, caisse.
+  Future<Map<String, dynamic>> recetteDuJour({
+    required String stationId,
+    DateTime? date,
+  }) async {
+    try {
+      final row = await db.rpc('recette_du_jour', params: {
+        'p_station': stationId,
+        'p_date': date == null ? null : CaisseRepository._date(date),
+      });
+      return Map<String, dynamic>.from(row as Map);
+    } catch (e) {
+      throw DataException.from(e);
+    }
+  }
+
+  /// Les chiffres globaux de la société sur une période.
+  Future<Map<String, dynamic>> stats({
+    DateTime? debut,
+    DateTime? fin,
+    String? companyId,
+  }) =>
+      StatsRepository().company(companyId: companyId, debut: debut, fin: fin);
 }

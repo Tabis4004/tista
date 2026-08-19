@@ -71,6 +71,18 @@ class _SideMenuState extends State<SideMenu> {
       'label': "Opérations",
       'menus': [
         {
+          'icon': Icons.speed,
+          'label': "Vente sur index",
+          'page': AppRouteConstants.venteIndex,
+          'droits': hasDroits(droits: ['EDIT_VENTE'])
+        },
+        {
+          'icon': Icons.qr_code_scanner,
+          'label': 'Honorer un bon',
+          'page': AppRouteConstants.venteBon,
+          'droits': hasDroits(droits: ['EDIT_VENTE'])
+        },
+        {
           'icon': Icons.paid,
           'label': 'Opérations',
           'page': AppRouteConstants.operation,

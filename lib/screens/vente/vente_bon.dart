@@ -99,7 +99,10 @@ class _VenteBonState extends State<VenteBon> {
       final quantite = op['quantity'];
       showToast(context,
           'Bon honoré : $montant F${quantite == null ? '' : ' — $quantite L'}');
-      Navigator.of(context).pop(op);
+      // Ces écrans sont atteints de deux façons : empilés depuis la tuile
+      // Vente, ou directement par le menu latéral. Dans le second cas il n'y a
+      // rien à dépiler — `pop` ferait sortir de la coquille de navigation.
+      if (Navigator.of(context).canPop()) Navigator.of(context).pop(op);
     } catch (e) {
       if (mounted) {
         showToast(context, messageDe(e));

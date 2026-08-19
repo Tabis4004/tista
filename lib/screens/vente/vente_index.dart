@@ -128,7 +128,12 @@ class _VenteIndexState extends State<VenteIndex> {
           .surIndex(pistoletId: '${pistolet['id']}', indexFin: fin);
       if (!mounted) return;
       await _montrerRecapitulatif(op);
-      if (mounted) Navigator.of(context).pop(op);
+      // Ces écrans sont atteints de deux façons : empilés depuis la tuile
+      // Vente, ou directement par le menu latéral. Dans le second cas il n'y a
+      // rien à dépiler — `pop` ferait sortir de la coquille de navigation.
+      if (mounted && Navigator.of(context).canPop()) {
+        Navigator.of(context).pop(op);
+      }
     } catch (e) {
       if (mounted) showToast(context, messageDe(e));
     } finally {
