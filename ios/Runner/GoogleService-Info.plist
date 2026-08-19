@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>472795631441-e5spah3s6k0m6otpql32l65tkdothq9k.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.472795631441-e5spah3s6k0m6otpql32l65tkdothq9k</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>472795631441-64a11ofsmn6380u24l0pfh3bngvrgne1.apps.googleusercontent.com</string>
+	<key>API_KEY</key>
+	<string>AIzaSyD7itJ6xZ7WyRJ99cdrvlpzg6Q0g78xTMw</string>
+	<key>GCM_SENDER_ID</key>
+	<string>472795631441</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>developer.owner.tista</string>
+	<key>PROJECT_ID</key>
+	<string>tista-tg</string>
+	<key>STORAGE_BUCKET</key>
+	<string>tista-tg.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:472795631441:ios:c3a0e8845d92a5a9830d70</string>
+</dict>
+</plist>

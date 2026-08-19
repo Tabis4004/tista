@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "472795631441",
+    "project_id": "tista-tg",
+    "storage_bucket": "tista-tg.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:472795631441:android:f5505b0c7d744999830d70",
+        "android_client_info": {
+          "package_name": "developer.owner.tista"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "472795631441-64a11ofsmn6380u24l0pfh3bngvrgne1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "developer.owner.tista",
+            "certificate_hash": "a397eed876fa67e9101358f5588728a6b05c9ee0"
+          }
+        },
+        {
+          "client_id": "472795631441-slq6uskk4a455i69qp7kjjjndbj6dc3g.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBEXW-Kxir5SnlpLyrGqynyQh1ZHEAT29Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "472795631441-slq6uskk4a455i69qp7kjjjndbj6dc3g.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "472795631441-e5spah3s6k0m6otpql32l65tkdothq9k.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "developer.owner.tista"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

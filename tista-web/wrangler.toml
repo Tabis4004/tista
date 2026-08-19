@@ -1,0 +1,8 @@
+# Cloudflare Pages — console web TiSta+
+#
+# `pages_build_output_dir` suffit : wrangler pousse un dossier déjà construit,
+# il ne construit rien lui-même. C'est deploy.sh qui lance `npm run build`.
+
+name = "tista-web"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-08-18"

@@ -1,0 +1,173 @@
+PODS:
+  - device_info_plus (0.0.1):
+    - FlutterMacOS
+  - Firebase/CoreOnly (11.2.0):
+    - FirebaseCore (= 11.2.0)
+  - Firebase/Messaging (11.2.0):
+    - Firebase/CoreOnly
+    - FirebaseMessaging (~> 11.2.0)
+  - firebase_core (3.6.0):
+    - Firebase/CoreOnly (~> 11.2.0)
+    - FlutterMacOS
+  - firebase_messaging (15.1.3):
+    - Firebase/CoreOnly (~> 11.2.0)
+    - Firebase/Messaging (~> 11.2.0)
+    - firebase_core
+    - FlutterMacOS
+  - FirebaseCore (11.2.0):
+    - FirebaseCoreInternal (~> 11.0)
+    - GoogleUtilities/Environment (~> 8.0)
+    - GoogleUtilities/Logger (~> 8.0)
+  - FirebaseCoreInternal (11.3.0):
+    - "GoogleUtilities/NSData+zlib (~> 8.0)"
+  - FirebaseInstallations (11.3.0):
+    - FirebaseCore (~> 11.0)
+    - GoogleUtilities/Environment (~> 8.0)
+    - GoogleUtilities/UserDefaults (~> 8.0)
+    - PromisesObjC (~> 2.4)
+  - FirebaseMessaging (11.2.0):
+    - FirebaseCore (~> 11.0)
+    - FirebaseInstallations (~> 11.0)
+    - GoogleDataTransport (~> 10.0)
+    - GoogleUtilities/AppDelegateSwizzler (~> 8.0)
+    - GoogleUtilities/Environment (~> 8.0)
+    - GoogleUtilities/Reachability (~> 8.0)
+    - GoogleUtilities/UserDefaults (~> 8.0)
+    - nanopb (~> 3.30910.0)
+  - flutter_local_notifications (0.0.1):
+    - FlutterMacOS
+  - FlutterMacOS (1.0.0)
+  - GoogleDataTransport (10.1.0):
+    - nanopb (~> 3.30910.0)
+    - PromisesObjC (~> 2.4)
+  - GoogleUtilities/AppDelegateSwizzler (8.0.2):
+    - GoogleUtilities/Environment
+    - GoogleUtilities/Logger
+    - GoogleUtilities/Network
+    - GoogleUtilities/Privacy
+  - GoogleUtilities/Environment (8.0.2):
+    - GoogleUtilities/Privacy
+  - GoogleUtilities/Logger (8.0.2):
+    - GoogleUtilities/Environment
+    - GoogleUtilities/Privacy
+  - GoogleUtilities/Network (8.0.2):
+    - GoogleUtilities/Logger
+    - "GoogleUtilities/NSData+zlib"
+    - GoogleUtilities/Privacy
+    - GoogleUtilities/Reachability
+  - "GoogleUtilities/NSData+zlib (8.0.2)":
+    - GoogleUtilities/Privacy
+  - GoogleUtilities/Privacy (8.0.2)
+  - GoogleUtilities/Reachability (8.0.2):
+    - GoogleUtilities/Logger
+    - GoogleUtilities/Privacy
+  - GoogleUtilities/UserDefaults (8.0.2):
+    - GoogleUtilities/Logger
+    - GoogleUtilities/Privacy
+  - isar_flutter_libs (1.0.0):
+    - FlutterMacOS
+  - nanopb (3.30910.0):
+    - nanopb/decode (= 3.30910.0)
+    - nanopb/encode (= 3.30910.0)
+  - nanopb/decode (3.30910.0)
+  - nanopb/encode (3.30910.0)
+  - package_info_plus (0.0.1):
+    - FlutterMacOS
+  - path_provider_foundation (0.0.1):
+    - Flutter
+    - FlutterMacOS
+  - PromisesObjC (2.4.0)
+  - screen_retriever (0.0.1):
+    - FlutterMacOS
+  - share_plus (0.0.1):
+    - FlutterMacOS
+  - url_launcher_macos (0.0.1):
+    - FlutterMacOS
+  - webview_flutter_wkwebview (0.0.1):
+    - Flutter
+    - FlutterMacOS
+  - window_manager (0.2.0):
+    - FlutterMacOS
+
+DEPENDENCIES:
+  - device_info_plus (from `Flutter/ephemeral/.symlinks/plugins/device_info_plus/macos`)
+  - firebase_core (from `Flutter/ephemeral/.symlinks/plugins/firebase_core/macos`)
+  - firebase_messaging (from `Flutter/ephemeral/.symlinks/plugins/firebase_messaging/macos`)
+  - flutter_local_notifications (from `Flutter/ephemeral/.symlinks/plugins/flutter_local_notifications/macos`)
+  - FlutterMacOS (from `Flutter/ephemeral`)
+  - isar_flutter_libs (from `Flutter/ephemeral/.symlinks/plugins/isar_flutter_libs/macos`)
+  - package_info_plus (from `Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos`)
+  - path_provider_foundation (from `Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin`)
+  - screen_retriever (from `Flutter/ephemeral/.symlinks/plugins/screen_retriever/macos`)
+  - share_plus (from `Flutter/ephemeral/.symlinks/plugins/share_plus/macos`)
+  - url_launcher_macos (from `Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos`)
+  - webview_flutter_wkwebview (from `Flutter/ephemeral/.symlinks/plugins/webview_flutter_wkwebview/darwin`)
+  - window_manager (from `Flutter/ephemeral/.symlinks/plugins/window_manager/macos`)
+
+SPEC REPOS:
+  trunk:
+    - Firebase
+    - FirebaseCore
+    - FirebaseCoreInternal
+    - FirebaseInstallations
+    - FirebaseMessaging
+    - GoogleDataTransport
+    - GoogleUtilities
+    - nanopb
+    - PromisesObjC
+
+EXTERNAL SOURCES:
+  device_info_plus:
+    :path: Flutter/ephemeral/.symlinks/plugins/device_info_plus/macos
+  firebase_core:
+    :path: Flutter/ephemeral/.symlinks/plugins/firebase_core/macos
+  firebase_messaging:
+    :path: Flutter/ephemeral/.symlinks/plugins/firebase_messaging/macos
+  flutter_local_notifications:
+    :path: Flutter/ephemeral/.symlinks/plugins/flutter_local_notifications/macos
+  FlutterMacOS:
+    :path: Flutter/ephemeral
+  isar_flutter_libs:
+    :path: Flutter/ephemeral/.symlinks/plugins/isar_flutter_libs/macos
+  package_info_plus:
+    :path: Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos
+  path_provider_foundation:
+    :path: Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin
+  screen_retriever:
+    :path: Flutter/ephemeral/.symlinks/plugins/screen_retriever/macos
+  share_plus:
+    :path: Flutter/ephemeral/.symlinks/plugins/share_plus/macos
+  url_launcher_macos:
+    :path: Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos
+  webview_flutter_wkwebview:
+    :path: Flutter/ephemeral/.symlinks/plugins/webview_flutter_wkwebview/darwin
+  window_manager:
+    :path: Flutter/ephemeral/.symlinks/plugins/window_manager/macos
+
+SPEC CHECKSUMS:
+  device_info_plus: 5401765fde0b8d062a2f8eb65510fb17e77cf07f
+  Firebase: 98e6bf5278170668a7983e12971a66b2cd57fc8c
+  firebase_core: e88f946a4601cb1854178cb07da241bba5a6508e
+  firebase_messaging: e1b1c1504659e13d66131f62ec22919293cd0d11
+  FirebaseCore: a282032ae9295c795714ded2ec9c522fc237f8da
+  FirebaseCoreInternal: ac26d09a70c730e497936430af4e60fb0c68ec4e
+  FirebaseInstallations: 58cf94dabf1e2bb2fa87725a9be5c2249171cda0
+  FirebaseMessaging: c9ec7b90c399c7a6100297e9d16f8a27fc7f7152
+  flutter_local_notifications: 3805ca215b2fb7f397d78b66db91f6a747af52e4
+  FlutterMacOS: 8f6f14fa908a6fb3fba0cd85dbd81ec4b251fb24
+  GoogleDataTransport: aae35b7ea0c09004c3797d53c8c41f66f219d6a7
+  GoogleUtilities: 26a3abef001b6533cf678d3eb38fd3f614b7872d
+  isar_flutter_libs: 43385c99864c168fadba7c9adeddc5d38838ca6a
+  nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
+  package_info_plus: 02d7a575e80f194102bef286361c6c326e4c29ce
+  path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
+  PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
+  screen_retriever: 59634572a57080243dd1bf715e55b6c54f241a38
+  share_plus: 76dd39142738f7a68dd57b05093b5e8193f220f7
+  url_launcher_macos: c82c93949963e55b228a30115bd219499a6fe404
+  webview_flutter_wkwebview: 0982481e3d9c78fd5c6f62a002fcd24fc791f1e4
+  window_manager: 3a1844359a6295ab1e47659b1a777e36773cd6e8
+
+PODFILE CHECKSUM: 9ebaf0ce3d369aaa26a9ea0e159195ed94724cf3
+
+COCOAPODS: 1.15.2

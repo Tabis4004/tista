@@ -1,0 +1,260 @@
+/* ---------------------------------------------------------------------------
+   Jetons de couleur.
+   Repris de la palette de référence data-viz : surface, encres et statuts.
+   Les couleurs de statut sont réservées — elles ne servent jamais de couleur
+   décorative, et ne portent jamais un sens à elles seules (toujours un mot
+   ou un signe à côté).
+   --------------------------------------------------------------------------- */
+:root {
+  color-scheme: light;
+
+  --page: #f9f9f7;
+  --surface: #fcfcfb;
+  --ink: #0b0b0b;
+  --ink-2: #52514e;
+  --ink-muted: #898781;
+  --hairline: #e1e0d9;
+  --border: rgba(11, 11, 11, 0.1);
+
+  --accent: #2a78d6;
+  --accent-ink: #1c5cab;
+  --accent-wash: #eaf2fd;
+
+  --good: #0ca30c;
+  --good-text: #006300;
+  --warning: #fab219;
+  --critical: #d03b3b;
+
+  --radius: 10px;
+  --gap: 16px;
+
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink);
+  background: var(--page);
+}
+
+* { box-sizing: border-box; }
+
+body { margin: 0; }
+
+a { color: var(--accent-ink); }
+
+/* ---------------------------------------------------------------- structure */
+.app { display: flex; min-height: 100vh; }
+
+.sidebar {
+  width: 232px;
+  flex: 0 0 232px;
+  background: var(--surface);
+  border-right: 1px solid var(--hairline);
+  padding: 20px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.brand {
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  font-size: 17px;
+  padding: 4px 12px 18px;
+}
+.brand small {
+  display: block;
+  font-weight: 400;
+  font-size: 12px;
+  color: var(--ink-muted);
+  letter-spacing: 0;
+}
+
+.nav-link {
+  display: block;
+  padding: 9px 12px;
+  border-radius: 8px;
+  color: var(--ink-2);
+  text-decoration: none;
+  font-size: 14px;
+}
+.nav-link:hover { background: #f2f1ee; }
+.nav-link.active {
+  background: var(--accent-wash);
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+
+.sidebar-foot {
+  margin-top: auto;
+  padding: 12px;
+  border-top: 1px solid var(--hairline);
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+
+.main { flex: 1; min-width: 0; padding: 24px 28px 64px; }
+
+.page-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+h1 { font-size: 22px; margin: 0; font-weight: 700; }
+h2 { font-size: 15px; margin: 28px 0 10px; font-weight: 600; }
+.subtitle { color: var(--ink-muted); font-size: 13px; margin: 3px 0 0; }
+
+/* -------------------------------------------------------------- stat tiles */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: var(--gap);
+}
+
+.tile {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+}
+.tile-label {
+  font-size: 12px;
+  color: var(--ink-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+/* Chiffres autonomes : chasse proportionnelle (la chasse fixe est réservée
+   aux colonnes qui doivent s'aligner verticalement). */
+.tile-value { font-size: 27px; font-weight: 700; line-height: 1.15; }
+.tile-hint { font-size: 12px; color: var(--ink-2); margin-top: 5px; }
+
+.tile-value.negatif { color: var(--critical); }
+
+/* ------------------------------------------------------------------ tables */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+thead th {
+  text-align: left;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--ink-muted);
+  font-weight: 600;
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--hairline);
+  white-space: nowrap;
+}
+tbody td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--hairline);
+  color: var(--ink-2);
+}
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover td { background: #f6f5f2; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+td.fort { color: var(--ink); font-weight: 600; }
+
+.vide { padding: 32px 14px; text-align: center; color: var(--ink-muted); font-size: 14px; }
+
+/* ----------------------------------------------------------------- filtres */
+.filtres {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.champ { display: flex; flex-direction: column; gap: 4px; }
+.champ label { font-size: 11px; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.champ input, .champ select {
+  font: inherit;
+  font-size: 14px;
+  padding: 7px 10px;
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  min-width: 150px;
+}
+.champ input:focus, .champ select:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+
+/* ---------------------------------------------------------------- boutons */
+button {
+  font: inherit;
+  font-size: 14px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--hairline);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+}
+button:hover:not(:disabled) { background: #f2f1ee; }
+button:disabled { opacity: 0.55; cursor: default; }
+button.primaire {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+button.primaire:hover:not(:disabled) { background: var(--accent-ink); }
+
+/* ----------------------------------------------------------------- alertes
+   Un statut ne se lit jamais à la couleur seule : le libellé le porte. */
+.alerte {
+  border-radius: 8px;
+  padding: 10px 13px;
+  font-size: 14px;
+  margin: 12px 0;
+  border: 1px solid;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+.alerte b { flex: 0 0 auto; }
+.alerte.erreur { border-color: var(--critical); background: #fdf1f1; color: #7c1d1d; }
+.alerte.succes { border-color: var(--good); background: #eefbee; color: var(--good-text); }
+
+/* ------------------------------------------------------------------- login */
+.login-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+.login-card {
+  width: 100%;
+  max-width: 380px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 28px;
+}
+.login-card h1 { margin-bottom: 4px; }
+.login-card .champ { margin-bottom: 14px; }
+.login-card .champ input { width: 100%; }
+
+.muted { color: var(--ink-muted); font-size: 13px; }
+.pile { display: flex; flex-direction: column; gap: 16px; }
+.ligne { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.pousse-droite { margin-left: auto; }
+
+@media (max-width: 820px) {
+  .app { flex-direction: column; }
+  .sidebar { width: auto; flex: none; flex-direction: row; overflow-x: auto; padding: 10px; }
+  .brand, .sidebar-foot { display: none; }
+  .main { padding: 16px; }
+}

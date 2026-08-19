@@ -1,0 +1,97 @@
+Target dependency graph (34 targets)
+FirebaseCore-FirebaseCore_Privacy in Pods, no dependencies
+FirebaseCoreInternal-FirebaseCoreInternal_Privacy in Pods, no dependencies
+GoogleUtilities-GoogleUtilities_Privacy in Pods, no dependencies
+GoogleUtilities in Pods, depends on:
+GoogleUtilities-GoogleUtilities_Privacy in Pods (explicit)
+FirebaseCoreInternal in Pods, depends on:
+FirebaseCoreInternal-FirebaseCoreInternal_Privacy in Pods (explicit)
+GoogleUtilities in Pods (explicit)
+FirebaseCore in Pods, depends on:
+FirebaseCore-FirebaseCore_Privacy in Pods (explicit)
+FirebaseCoreInternal in Pods (explicit)
+GoogleUtilities in Pods (explicit)
+FirebaseInstallations-FirebaseInstallations_Privacy in Pods, no dependencies
+PromisesObjC-FBLPromises_Privacy in Pods, no dependencies
+PromisesObjC in Pods, depends on:
+PromisesObjC-FBLPromises_Privacy in Pods (explicit)
+FirebaseInstallations in Pods, depends on:
+FirebaseCore in Pods (explicit)
+FirebaseInstallations-FirebaseInstallations_Privacy in Pods (explicit)
+GoogleUtilities in Pods (explicit)
+PromisesObjC in Pods (explicit)
+FirebaseMessaging-FirebaseMessaging_Privacy in Pods, no dependencies
+GoogleDataTransport-GoogleDataTransport_Privacy in Pods, no dependencies
+nanopb-nanopb_Privacy in Pods, no dependencies
+nanopb in Pods, depends on:
+nanopb-nanopb_Privacy in Pods (explicit)
+GoogleDataTransport in Pods, depends on:
+GoogleDataTransport-GoogleDataTransport_Privacy in Pods (explicit)
+PromisesObjC in Pods (explicit)
+nanopb in Pods (explicit)
+FirebaseMessaging in Pods, depends on:
+FirebaseCore in Pods (explicit)
+FirebaseInstallations in Pods (explicit)
+FirebaseMessaging-FirebaseMessaging_Privacy in Pods (explicit)
+GoogleDataTransport in Pods (explicit)
+GoogleUtilities in Pods (explicit)
+nanopb in Pods (explicit)
+Firebase in Pods, depends on:
+FirebaseCore in Pods (explicit)
+FirebaseMessaging in Pods (explicit)
+FlutterMacOS in Pods, no dependencies
+device_info_plus in Pods, depends on:
+FlutterMacOS in Pods (explicit)
+firebase_core in Pods, depends on:
+Firebase in Pods (explicit)
+FlutterMacOS in Pods (explicit)
+firebase_messaging-firebase_messaging_Privacy in Pods, no dependencies
+firebase_messaging in Pods, depends on:
+Firebase in Pods (explicit)
+FlutterMacOS in Pods (explicit)
+firebase_core in Pods (explicit)
+firebase_messaging-firebase_messaging_Privacy in Pods (explicit)
+flutter_local_notifications in Pods, depends on:
+FlutterMacOS in Pods (explicit)
+isar_flutter_libs in Pods, depends on:
+FlutterMacOS in Pods (explicit)
+package_info_plus in Pods, depends on:
+FlutterMacOS in Pods (explicit)
+path_provider_foundation-path_provider_foundation_privacy in Pods, no dependencies
+path_provider_foundation in Pods, depends on:
+FlutterMacOS in Pods (explicit)
+path_provider_foundation-path_provider_foundation_privacy in Pods (explicit)
+screen_retriever in Pods, depends on:
+FlutterMacOS in Pods (explicit)
+share_plus in Pods, depends on:
+FlutterMacOS in Pods (explicit)
+webview_flutter_wkwebview-webview_flutter_wkwebview_privacy in Pods, no dependencies
+webview_flutter_wkwebview in Pods, depends on:
+FlutterMacOS in Pods (explicit)
+webview_flutter_wkwebview-webview_flutter_wkwebview_privacy in Pods (explicit)
+window_manager in Pods, depends on:
+FlutterMacOS in Pods (explicit)
+Pods-Runner in Pods, depends on:
+Firebase in Pods (explicit)
+FirebaseCore in Pods (explicit)
+FirebaseCoreInternal in Pods (explicit)
+FirebaseInstallations in Pods (explicit)
+FirebaseMessaging in Pods (explicit)
+FlutterMacOS in Pods (explicit)
+GoogleDataTransport in Pods (explicit)
+GoogleUtilities in Pods (explicit)
+PromisesObjC in Pods (explicit)
+device_info_plus in Pods (explicit)
+firebase_core in Pods (explicit)
+firebase_messaging in Pods (explicit)
+flutter_local_notifications in Pods (explicit)
+isar_flutter_libs in Pods (explicit)
+nanopb in Pods (explicit)
+package_info_plus in Pods (explicit)
+path_provider_foundation in Pods (explicit)
+screen_retriever in Pods (explicit)
+share_plus in Pods (explicit)
+webview_flutter_wkwebview in Pods (explicit)
+window_manager in Pods (explicit)
+Pods-RunnerTests in Pods, depends on:
+Pods-Runner in Pods (explicit)
