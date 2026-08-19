@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:tista/data/repositories.dart';
+import 'package:tista/providers/theme.dart';
 import 'package:tista/providers/utils.dart';
 import 'package:tista/screens/suivi/graphique_jours.dart';
 import 'package:tista/screens/vente/vente_bon.dart' show messageDe;
@@ -231,10 +232,12 @@ class _StatsPageState extends State<StatsPage>
         children: [
           _grille([
             _Tuile('Ventes', _f(ventes?['amount']),
+                teinte: tistaSerie1,
                 indice: '${ventes?['nb'] ?? 0} opération(s)'),
             _Tuile('Recharges', _f(recharges?['amount']),
+                teinte: tistaSerie3,
                 indice: '${recharges?['nb'] ?? 0} opération(s)'),
-            _Tuile('Dépenses', _f(depenses)),
+            _Tuile('Dépenses', _f(depenses), teinte: tistaSerie2),
             _Tuile('Ventes moins dépenses', _f(net), negatif: net < 0),
           ]),
           const SizedBox(height: 18),
@@ -288,9 +291,11 @@ class _StatsPageState extends State<StatsPage>
         children: [
           _grille([
             _Tuile('Espèces', _f(somme('especes')),
-                indice: 'Doit être en caisse'),
-            _Tuile('Carte', _f(somme('carte')), indice: 'Déjà encaissé'),
-            _Tuile('Bon', _f(somme('bon')), indice: 'Bons honorés'),
+                teinte: tistaSerie1, indice: 'Doit être en caisse'),
+            _Tuile('Carte', _f(somme('carte')),
+                teinte: tistaSerie3, indice: 'Déjà encaissé'),
+            _Tuile('Bon', _f(somme('bon')),
+                teinte: tistaSerie4, indice: 'Bons honorés'),
             _Tuile('Recette totale', _f(somme('total')),
                 indice: _l(somme('quantite'))),
           ]),
@@ -308,7 +313,7 @@ class _StatsPageState extends State<StatsPage>
                               style: const TextStyle(fontWeight: FontWeight.w700)),
                           Text('${l['station'] ?? ''}',
                               style: const TextStyle(
-                                  fontSize: 12, color: Colors.black54)),
+                                  fontSize: 12, color: tistaInkMuted)),
                         ],
                       ),
                       const Divider(height: 16),
@@ -389,11 +394,11 @@ class _StatsPageState extends State<StatsPage>
         const SizedBox(height: 12),
         _grille([
           _Tuile('Espèces', _f(mode('ESPECES')?['montant']),
-              indice: _l(mode('ESPECES')?['quantite'])),
+              teinte: tistaSerie1, indice: _l(mode('ESPECES')?['quantite'])),
           _Tuile('Carte', _f(mode('CARTE')?['montant']),
-              indice: _l(mode('CARTE')?['quantite'])),
+              teinte: tistaSerie3, indice: _l(mode('CARTE')?['quantite'])),
           _Tuile('Bon', _f(mode('BON')?['montant']),
-              indice: _l(mode('BON')?['quantite'])),
+              teinte: tistaSerie4, indice: _l(mode('BON')?['quantite'])),
           _Tuile('Recette du jour', _f((_jour?['total'] as Map?)?['montant']),
               indice: _l((_jour?['total'] as Map?)?['quantite'])),
         ]),
@@ -456,12 +461,12 @@ class _StatsPageState extends State<StatsPage>
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(cle,
-              style: const TextStyle(fontSize: 12.5, color: Colors.black54)),
+              style: const TextStyle(fontSize: 12.5, color: tistaInk2)),
           Text(
             negatif ? '$valeur (négatif)' : valeur,
             style: TextStyle(
               fontWeight: fort ? FontWeight.w800 : FontWeight.w600,
-              color: negatif ? const Color(0xFFD03B3B) : null,
+              color: negatif ? tistaCritique : null,
             ),
           ),
         ],
@@ -470,20 +475,34 @@ class _StatsPageState extends State<StatsPage>
   }
 }
 
+/// Tuile de chiffre clé.
+///
+/// `teinte` désigne un emplacement de la série, pas une couleur : la même
+/// entité garde la même teinte d'un écran à l'autre — et la même que dans la
+/// console web. Sans cette règle, la couleur cesse d'informer.
 class _Tuile extends StatelessWidget {
-  const _Tuile(this.label, this.valeur, {this.indice, this.negatif = false});
+  const _Tuile(this.label, this.valeur,
+      {this.indice, this.negatif = false, this.teinte});
 
   final String label;
   final String valeur;
   final String? indice;
   final bool negatif;
+  final Color? teinte;
 
   @override
   Widget build(BuildContext context) {
     return Card(
       margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
+      clipBehavior: Clip.antiAlias,
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border(
+            top: BorderSide(color: teinte ?? tistaHairline, width: 3),
+          ),
+        ),
+        child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,
@@ -494,7 +513,7 @@ class _Tuile extends StatelessWidget {
                 style: const TextStyle(
                     fontSize: 10,
                     letterSpacing: 0.5,
-                    color: Color(0xFF898781))),
+                    color: tistaInkMuted)),
             const SizedBox(height: 4),
             FittedBox(
               fit: BoxFit.scaleDown,
@@ -504,7 +523,7 @@ class _Tuile extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 19,
                   fontWeight: FontWeight.w800,
-                  color: negatif ? const Color(0xFFD03B3B) : null,
+                  color: negatif ? tistaCritique : null,
                 ),
               ),
             ),
@@ -513,10 +532,11 @@ class _Tuile extends StatelessWidget {
               Text(indice!,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 11, color: Colors.black54)),
+                  style: const TextStyle(fontSize: 11, color: tistaInk2)),
             ],
           ],
         ),
+      ),
       ),
     );
   }

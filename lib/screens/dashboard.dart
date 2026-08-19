@@ -17,6 +17,7 @@ import '../providers/routing_config.dart';
 import '../providers/services.dart';
 import '../providers/theme.dart';
 import 'widgets/responsive_builder.dart';
+import 'package:tista/screens/widgets/carte_service.dart';
 import 'package:tista/screens/vente/mode_vente.dart';
 import 'package:tista/screens/vente/vente_bon.dart';
 import 'package:tista/screens/vente/vente_index.dart';
@@ -342,20 +343,85 @@ class _DashboardPageState extends State<DashboardPage> {
                                         title: const Text('Dépenses'))),
                               ))
                           ]),
-                          if ( //Platform.isAndroid &&
-                              hasDroits(droits: ['EDIT_VENTE']))
-                            BootstrapRow(children: [
+                          // Les services, en surfaces teintées : ce sont les
+                          // gestes du quotidien, ils doivent se trouver sans
+                          // être lus. Chaque carte reste conditionnée à son
+                          // droit — un pompiste n'en voit pas la moitié.
+                          const Padding(
+                              padding: EdgeInsets.only(top: 18, bottom: 6),
+                              child: Text('SERVICES',
+                                  style: TextStyle(
+                                      fontSize: 11,
+                                      letterSpacing: 1,
+                                      fontWeight: FontWeight.w700,
+                                      color: tistaInkMuted))),
+                          BootstrapRow(children: [
+                            if (hasDroits(droits: ['EDIT_VENTE']))
                               BootstrapCol(
-                                  sizes: 'col-12',
-                                  child: Card(
-                                      elevation: 0,
-                                      child: ListTile(
-                                          onTap: onVente,
-                                          trailing: const Icon(Icons
-                                              .keyboard_arrow_right_outlined),
-                                          title: const Text(
-                                              'Effectuer une vente'))))
-                            ]),
+                                  sizes: 'col-6 col-md-3',
+                                  child: CarteService(
+                                      libelle: 'Vendre',
+                                      detail: 'Espèces, carte ou bon',
+                                      icone: Icons.local_gas_station,
+                                      teinte: tistaSerie1,
+                                      lavis: tistaWash1,
+                                      onTap: onVente)),
+                            if (hasDroits(droits: ['EDIT_VENTE']))
+                              BootstrapCol(
+                                  sizes: 'col-6 col-md-3',
+                                  child: CarteService(
+                                      libelle: 'Honorer un bon',
+                                      detail: 'Scan du QR',
+                                      icone: Icons.qr_code_scanner,
+                                      teinte: tistaSerie4,
+                                      lavis: tistaWash4,
+                                      onTap: () => context
+                                          .goNamed(AppRouteConstants.venteBon))),
+                            if (hasDroits(droits: ['DEP']))
+                              BootstrapCol(
+                                  sizes: 'col-6 col-md-3',
+                                  child: CarteService(
+                                      libelle: 'Dépenses',
+                                      detail: 'Saisir et suivre',
+                                      icone: Icons.receipt_long,
+                                      teinte: tistaSerie2,
+                                      lavis: tistaWash2,
+                                      onTap: () => context
+                                          .goNamed(AppRouteConstants.depense))),
+                            if (hasDroits(droits: ['CARD']))
+                              BootstrapCol(
+                                  sizes: 'col-6 col-md-3',
+                                  child: CarteService(
+                                      libelle: 'Cartes',
+                                      detail: 'Parc et soldes',
+                                      icone: Icons.credit_card,
+                                      teinte: tistaSerie3,
+                                      lavis: tistaWash3,
+                                      onTap: () => context
+                                          .goNamed(AppRouteConstants.card))),
+                            if (hasDroits(droits: ['CLIENT']))
+                              BootstrapCol(
+                                  sizes: 'col-6 col-md-3',
+                                  child: CarteService(
+                                      libelle: 'Clients',
+                                      detail: 'Comptes et encours',
+                                      icone: Icons.groups,
+                                      teinte: tistaSerie1,
+                                      lavis: tistaWash1,
+                                      onTap: () => context
+                                          .goNamed(AppRouteConstants.client))),
+                            if (hasDroits(droits: ['STATS']))
+                              BootstrapCol(
+                                  sizes: 'col-6 col-md-3',
+                                  child: CarteService(
+                                      libelle: 'Suivi',
+                                      detail: 'Recette et caisse',
+                                      icone: Icons.insights,
+                                      teinte: tistaSerie3,
+                                      lavis: tistaWash3,
+                                      onTap: () => context
+                                          .goNamed(AppRouteConstants.stats))),
+                          ]),
                           const SizedBox(height: defaultPadding * 5),
                           if (hasDroits(droits: ['STATS']))
                             BootstrapRow(children: [

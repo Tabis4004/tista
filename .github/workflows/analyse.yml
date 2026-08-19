@@ -1,0 +1,56 @@
+# Vérification statique du code Dart à chaque push.
+#
+# Pourquoi : `flutter analyze` prend 4 secondes, un build Gradle 47. Faire
+# tourner l'analyseur avant le build évite de découvrir une erreur de typage
+# après une minute d'attente. Ici, GitHub le fait pour toi sur chaque commit :
+# la coche verte ou rouge apparaît à côté du commit, sans rien lancer en local.
+#
+# Ce workflow ne compile pas d'APK — pas besoin du SDK Android, donc quelques
+# dizaines de secondes au lieu de plusieurs minutes.
+
+name: Analyse
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  dart:
+    name: flutter analyze
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Dépendances
+        run: flutter pub get
+
+      # `--no-fatal-infos` : les recommandations de style ne font pas échouer la
+      # vérification. Seules les erreurs et les avertissements bloquent — ce sont
+      # les seuls qui empêchent l'application de tourner.
+      - name: Analyse
+        run: flutter analyze --no-fatal-infos
+
+  web:
+    name: build console web
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tista-web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: tista-web/package-lock.json
+
+      - run: npm ci
+      - run: npm run build

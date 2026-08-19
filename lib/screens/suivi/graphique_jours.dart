@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:tista/providers/theme.dart';
 
 /// Un jour de la série.
 class PointJour {
@@ -61,12 +62,14 @@ class GraphiqueJours extends StatelessWidget {
           spacing: 18,
           runSpacing: 4,
           children: [
+            // Les dépenses sont en ambre, pas en rouge : le rouge signifie
+            // « problème », et une dépense normale n'en est pas un.
             _Legende(
-              couleur: const Color(0xFF0B0B0B),
+              couleur: tistaSerie1,
               libelle: 'Ventes ${_court(totalVentes)}',
             ),
             _Legende(
-              couleur: const Color(0xFFD03B3B),
+              couleur: tistaSerie2,
               libelle: 'Dépenses ${_court(totalDepenses)}',
             ),
           ],
@@ -169,7 +172,7 @@ class _PeintreBarres extends CustomPainter {
     double y(double valeur) => margeH + zoneH - (valeur / haut) * zoneH;
 
     final grille = Paint()
-      ..color = const Color(0xFFE1E0D9)
+      ..color = tistaHairline
       ..strokeWidth = 1;
 
     for (final f in const [0.0, 0.25, 0.5, 0.75, 1.0]) {
@@ -179,8 +182,8 @@ class _PeintreBarres extends CustomPainter {
       _texte(canvas, _court(valeur), Offset(margeG - 5, yy), droite: true);
     }
 
-    final peintureVentes = Paint()..color = const Color(0xFF0B0B0B);
-    final peintureDepenses = Paint()..color = const Color(0xFFD03B3B);
+    final peintureVentes = Paint()..color = tistaSerie1;
+    final peintureDepenses = Paint()..color = tistaSerie2;
     final pas = math.max(1, (points.length / 6).ceil());
 
     for (var i = 0; i < points.length; i++) {
@@ -210,7 +213,7 @@ class _PeintreBarres extends CustomPainter {
     final tp = TextPainter(
       text: TextSpan(
         text: texte,
-        style: const TextStyle(fontSize: 9, color: Color(0xFF898781)),
+        style: const TextStyle(fontSize: 9, color: tistaInkMuted),
       ),
       textDirection: TextDirection.ltr,
     )..layout();
