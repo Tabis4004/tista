@@ -373,6 +373,36 @@ class VenteRepository {
     }
   }
 
+  /// Vente sur relevé d'index : le chemin des espèces.
+  ///
+  /// Aucun montant à saisir — il découle de la différence d'index et du prix.
+  /// La base ne crédite la caisse que de la part réellement encaissée en
+  /// espèces : ce qui a été payé par carte ou par bon dans la journée en est
+  /// retiré, sans quoi la recette serait comptée deux fois.
+  ///
+  /// La réponse porte, dans `metadata`, la décomposition complète :
+  /// `montant_total`, `part_carte`, `part_bon`, `part_especes`.
+  Future<Map<String, dynamic>> surIndex({
+    required String pistoletId,
+    required num indexFin,
+    num? indexDebut,
+    num? prixUnitaire,
+    DateTime? date,
+  }) async {
+    try {
+      final row = await db.rpc('vente_sur_index', params: {
+        'p_pistolet': pistoletId,
+        'p_index_fin': indexFin,
+        'p_index_debut': indexDebut,
+        'p_prix_unitaire': prixUnitaire,
+        'p_date': date == null ? null : CaisseRepository._date(date),
+      });
+      return operationJson(row as Map);
+    } catch (e) {
+      throw DataException.from(e);
+    }
+  }
+
   Future<Map<String, dynamic>> recharger({
     required String codeCarte,
     required num montant,
@@ -493,6 +523,84 @@ class StatsRepository {
         'p_debut': debut == null ? null : CaisseRepository._date(debut),
         'p_fin': fin == null ? null : CaisseRepository._date(fin),
       }));
+    } catch (e) {
+      throw DataException.from(e);
+    }
+  }
+}
+
+// =============================================================================
+// Vente sur relevé d'index, et bons de carburant
+//
+// Ces deux chemins n'ont besoin d'aucun matériel : ils fonctionnent sur un
+// téléphone ordinaire. Seule la lecture de carte exige un TPE.
+// =============================================================================
+
+/// Les pistolets d'une station, avec leur index courant et le prix du produit.
+///
+/// L'index courant est ce qui rend la vente sur relevé possible : le montant
+/// n'est pas saisi, il est déduit de la différence entre deux relevés.
+class PistoletRepository {
+  SupabaseClient get db => SupabaseConfig.client;
+
+  static const String _select =
+      'id, code, name, index_courant, active, '
+      'pompe:pompes!inner(id, name, station_id), '
+      'cuve:cuves(id, name, product:products(id, name, prix_unitaire))';
+
+  Future<List<Map<String, dynamic>>> deLaStation(String stationId) async {
+    try {
+      final rows = await db
+          .from('pistolets')
+          .select(_select)
+          .eq('pompe.station_id', stationId)
+          .eq('active', true)
+          .order('code');
+      return List<Map<String, dynamic>>.from(
+          (rows as List).map((r) => Map<String, dynamic>.from(r as Map)));
+    } catch (e) {
+      throw DataException.from(e);
+    }
+  }
+}
+
+/// Bons de carburant : vérification et utilisation.
+class BonRepository {
+  SupabaseClient get db => SupabaseConfig.client;
+
+  /// Vérifie un bon à partir du contenu du QR ou du numéro de série seul.
+  ///
+  /// Ne modifie rien : peut être appelée autant de fois qu'on veut. La réponse
+  /// porte `utilisable`, qui est le seul champ à regarder pour décider, et
+  /// `message`, déjà rédigé en français pour être montré tel quel.
+  Future<Map<String, dynamic>> verifier(String code) async {
+    try {
+      final row = await db.rpc('verifier_bon', params: {'p_code': code});
+      return Map<String, dynamic>.from(row as Map);
+    } catch (e) {
+      throw DataException.from(e);
+    }
+  }
+
+  /// Consomme le bon et enregistre la vente. Irréversible.
+  ///
+  /// La protection contre la double présentation d'une photocopie est côté
+  /// base : la ligne est verrouillée le temps de la transaction, le second
+  /// appel voit un bon déjà utilisé.
+  Future<Map<String, dynamic>> utiliser({
+    required String code,
+    required String stationId,
+    String? productId,
+    String? pistoletId,
+  }) async {
+    try {
+      final row = await db.rpc('utiliser_bon', params: {
+        'p_code': code,
+        'p_station': stationId,
+        'p_product': productId,
+        'p_pistolet': pistoletId,
+      });
+      return operationJson(row as Map);
     } catch (e) {
       throw DataException.from(e);
     }

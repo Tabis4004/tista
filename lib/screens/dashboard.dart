@@ -17,6 +17,9 @@ import '../providers/routing_config.dart';
 import '../providers/services.dart';
 import '../providers/theme.dart';
 import 'widgets/responsive_builder.dart';
+import 'package:tista/screens/vente/mode_vente.dart';
+import 'package:tista/screens/vente/vente_bon.dart';
+import 'package:tista/screens/vente/vente_index.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -610,7 +613,33 @@ class _DashboardPageState extends State<DashboardPage> {
     ]);
   }
 
+  /// Point d'entrée de la vente : on demande d'abord comment le client paie.
+  ///
+  /// Ce bouton allumait auparavant le lecteur de carte sans rien demander, ce
+  /// qui répondait « Erreur de lecture » sur un téléphone — c'est-à-dire à
+  /// quiconque voulait simplement encaisser des espèces. Le matériel n'est
+  /// sollicité que si le mode choisi en a besoin.
   void onVente() async {
+    final mode = await choisirModeVente(context);
+    if (mode == null || !mounted) return;
+
+    switch (mode) {
+      case ModeVente.carte:
+        onVenteCarte();
+        break;
+      case ModeVente.especes:
+        Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const VenteIndex()));
+        break;
+      case ModeVente.bon:
+        Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const VenteBon()));
+        break;
+    }
+  }
+
+  /// Vente par carte : exige un lecteur, donc un TPE.
+  void onVenteCarte() async {
     Services.instance.getPompes();
     PrinterModule printerModule = PrinterModule();
     try {
