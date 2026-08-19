@@ -199,10 +199,11 @@ export default function Caisse() {
       {erreur ? <Alerte type="erreur">{erreur}</Alerte> : null}
 
       <div className="kpi-row" style={{ marginBottom: 18 }}>
-        <Tile label="Espèces" valeur={montant(cumuls.especes)} indice="Doit se trouver en caisse" />
-        <Tile label="Carte" valeur={montant(cumuls.carte)} indice="Déjà encaissé aux recharges" />
-        <Tile label="Bon" valeur={montant(cumuls.bon)} indice="Bons honorés" />
+        <Tile teinte={1} label="Espèces" valeur={montant(cumuls.especes)} indice="Doit se trouver en caisse" />
+        <Tile teinte={3} label="Carte" valeur={montant(cumuls.carte)} indice="Déjà encaissé aux recharges" />
+        <Tile teinte={4} label="Bon" valeur={montant(cumuls.bon)} indice="Bons honorés" />
         <Tile
+          teinte="neutre"
           label="Recette totale"
           valeur={montant(cumuls.total)}
           indice={`${litres(cumuls.quantite)} servis`}
@@ -211,7 +212,7 @@ export default function Caisse() {
 
       <div className="kpi-row" style={{ marginBottom: 18 }}>
         <Tile label="Recharges de cartes" valeur={montant(cumuls.recharges)} />
-        <Tile label="Dépenses" valeur={montant(cumuls.depenses)} />
+        <Tile teinte={2} label="Dépenses" valeur={montant(cumuls.depenses)} />
         <Tile
           label="Journées en solde négatif"
           valeur={`${cumuls.negatives}`}

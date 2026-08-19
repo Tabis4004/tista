@@ -482,27 +482,31 @@ class _UsersPageState extends State<UsersPage>
                                   style:
                                       TextStyle(fontWeight: FontWeight.bold))),
                           const Divider(),
+                          // La sélection ne vit plus sur chaque bouton mais
+                          // sur le groupe qui les contient : un seul endroit
+                          // sait quel rôle est coché, au lieu d'un par ligne.
                           Flexible(
                               child: SingleChildScrollView(
                                   controller: scrollCtrl,
-                                  child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        ...roles!.map<Widget>((e) {
-                                          return RadioListTile<String>(
-                                              title: Text(e['name']),
-                                              value: e['uuid'],
-                                              groupValue: role,
-                                              toggleable: true,
-                                              onChanged: (val) {
-                                                updateFn(() {
-                                                  role = val ?? '';
-                                                });
-                                              });
-                                        })
-                                      ]))),
+                                  child: RadioGroup<String>(
+                                      groupValue: role,
+                                      onChanged: (val) {
+                                        updateFn(() {
+                                          role = val ?? '';
+                                        });
+                                      },
+                                      child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            ...roles!.map<Widget>((e) {
+                                              return RadioListTile<String>(
+                                                  title: Text(e['name']),
+                                                  value: e['uuid'],
+                                                  toggleable: true);
+                                            })
+                                          ])))),
                           const SizedBox(height: 16),
                           OutlinedButton(
                               onPressed: () {
@@ -538,69 +542,4 @@ class _UsersPageState extends State<UsersPage>
     }
   }
 
-  AppBar _buildAppBar() {
-    if (isSearch) {
-      return AppBar(
-          leading: BackButton(onPressed: () {
-            setState(() {
-              Services.instance.searchCtrl.text = "";
-              isSearch = false;
-            });
-          }),
-          title: TextField(
-            controller: Services.instance.searchCtrl,
-            style: const TextStyle(color: Colors.white),
-            decoration: const InputDecoration.collapsed(
-                hintStyle: TextStyle(color: Colors.white54),
-                hintText: "Rechercher ..."),
-          ),
-          actions: [
-            IconButton(
-                onPressed: () {
-                  Services.instance.searchCtrl.text = "";
-                },
-                icon: const Icon(Icons.close))
-          ]);
-    }
-
-    return AppBar(
-        backgroundColor: isDesktop ? Colors.transparent : null,
-        title: Text(
-            widget.user != null
-                ? "Les affiliés de ${widget.user!['name']} ${widget.user!['prenoms']}"
-                : "Mes affiliés",
-            style: TextStyle(color: isDesktop ? appPrimaryColor : null)),
-        actions: [
-          if (!isDesktop)
-            IconButton(
-                onPressed: () {
-                  setState(() {
-                    isSearch = true;
-                  });
-                },
-                icon: const Icon(Icons.search)),
-          if (widget.filleuls && widget.user == null)
-            IconButton(
-                onPressed: () {
-                  navigateToBoard(context,
-                          routeName: AppRouteConstants.editUser,
-                          canBack: true,
-                          page: const EditUser())
-                      .then((value) {
-                    if (value != null) {
-                      if (users != null && users!.isNotEmpty) {
-                        _refreshController.requestRefresh();
-                      } else {
-                        setState(() {
-                          initFuture();
-                        });
-                      }
-                    }
-                  });
-                },
-                icon: Icon(Icons.add_circle_outline_outlined,
-                    color: isDesktop ? appPrimaryColor : null)),
-          const SizedBox(width: 8)
-        ]);
-  }
 }

@@ -114,16 +114,18 @@ export default function Dashboard() {
           <h2>Sur la période</h2>
           <div className="kpi-row">
             <Tile
+              teinte={1}
               label="Ventes"
               valeur={montant(ventes?.montant ?? 0)}
               indice={`${nombre(ventes?.nb ?? 0)} opération(s)`}
             />
             <Tile
+              teinte={3}
               label="Recharges de cartes"
               valeur={montant(recharges?.montant ?? 0)}
               indice={`${nombre(recharges?.nb ?? 0)} opération(s)`}
             />
-            <Tile label="Dépenses" valeur={montant(stats?.depenses ?? 0)} />
+            <Tile teinte={2} label="Dépenses" valeur={montant(stats?.depenses ?? 0)} />
             <Tile
               label="Ventes moins dépenses"
               valeur={montant(caisseNette)}

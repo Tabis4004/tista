@@ -447,19 +447,6 @@ class _ProfilPageState extends State<ProfilPage> {
     }
   }
 
-  Widget _buildDeviceIcon(dynamic device) {
-    //DeviceModel
-    if (device.device == 'ANDROID') {
-      return const Icon(Icons.phone_android_outlined);
-    } else if (device.device == 'iOS') {
-      return const Icon(Icons.phone_iphone_outlined);
-    } else if (['macOS', 'LINUX'].contains(device.device)) {
-      return const Icon(Icons.computer_outlined);
-    } else if (device.device == 'WINDOWS') {
-      return const Icon(Icons.window);
-    }
-    return const Icon(Icons.phone_android_outlined);
-  }
 }
 
 enum ProfilMenu {

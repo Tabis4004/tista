@@ -9,6 +9,16 @@
 # packages, and plugins designed to encourage good coding practices.
 include: package:flutter_lints/flutter.yaml
 
+# Les fichiers `.g.dart` sont produits par Isar : les analyser revient à
+# reprocher à un générateur son propre style, et les corriger ne survivrait pas
+# à la génération suivante. Les exclure garde la sortie de `flutter analyze`
+# lisible — c'est ce qui permet de repérer une vraie régression d'un coup d'œil.
+analyzer:
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - "build/**"
+
 linter:
   # The lint rules applied to this project can be customized in the
   # section below to disable rules from the `package:flutter_lints/flutter.yaml`

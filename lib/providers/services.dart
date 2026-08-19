@@ -104,7 +104,7 @@ class Services {
         // you can reject a `DioException` object eg: `handler.reject(dioError)`
       }, onError: (DioException e, handler) async {
         // Do something with response error
-        print(
+        debugPrint(
             'Dio error ${e.requestOptions.method} ${e.requestOptions.uri} ${e.response?.data}');
         if (['INVALID_TOKEN', 'NO_USER'].contains(e.response?.data['code'])) {
           try {

@@ -96,7 +96,7 @@ class _AdminPageState extends State<AdminPage> {
     bool isDesktop = Responsive.isDesktop(context);
     if (!isDesktop) {
       return TabBar(
-          unselectedLabelColor: appPrimaryColor.withOpacity(.8),
+          unselectedLabelColor: appPrimaryColor.withValues(alpha: .8),
           //isDesktop ? appPrimaryColor.withOpacity(.8) : Colors.white54,
           labelColor:
               appPrimaryColor, //isDesktop ? appPrimaryColor : Colors.white,
@@ -157,7 +157,7 @@ class _AdminPageState extends State<AdminPage> {
                 icon: const Icon(Icons.import_export)),
         ],
         bottom: TabBar(
-            unselectedLabelColor: appPrimaryColor.withOpacity(.8),
+            unselectedLabelColor: appPrimaryColor.withValues(alpha: .8),
             //isDesktop ? appPrimaryColor.withOpacity(.8) : Colors.white54,
             labelColor:
                 appPrimaryColor, //isDesktop ? appPrimaryColor : Colors.white,

@@ -1,19 +1,30 @@
 import type { ReactNode } from 'react';
 
-/** Tuile de chiffre clé. Forme adaptée à « quelques nombres en tête de page ». */
+/**
+ * Tuile de chiffre clé. Forme adaptée à « quelques nombres en tête de page ».
+ *
+ * `teinte` désigne un emplacement de la série, pas une couleur : 1 pour les
+ * espèces et les ventes, 2 pour les dépenses, 3 pour la carte, 4 pour le bon.
+ * La même entité garde la même teinte d'un écran à l'autre, sans quoi la
+ * couleur cesserait d'être une information et redeviendrait de la décoration.
+ */
 export function Tile({
   label,
   valeur,
   indice,
   negatif,
+  teinte,
 }: {
   label: string;
   valeur: ReactNode;
   indice?: ReactNode;
   negatif?: boolean;
+  teinte?: 1 | 2 | 3 | 4 | 'neutre';
 }) {
+  const classe = ['tile', teinte ? (teinte === 'neutre' ? 'neutre' : `t${teinte}`) : 'neutre']
+    .join(' ');
   return (
-    <div className="tile">
+    <div className={classe}>
       <div className="tile-label">{label}</div>
       <div className={negatif ? 'tile-value negatif' : 'tile-value'}>{valeur}</div>
       {indice ? <div className="tile-hint">{indice}</div> : null}

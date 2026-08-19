@@ -43,7 +43,7 @@ class Select {
 
   static const card =
       'legacy_id, code, solde, plafond, active, metadata, created_at, '
-      'company:companies(uuid), client:clients(${_clientLight})';
+      'company:companies(uuid), client:clients($_clientLight)';
 
   static const _clientLight =
       'legacy_id, uuid, name, prenoms, phone, mail, active, metadata';

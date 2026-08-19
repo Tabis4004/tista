@@ -135,8 +135,7 @@ class _CuivesPageState extends State<CuivesPage>
                             child: SingleChildScrollView(
                                 padding: const EdgeInsets.all(14),
                                 physics: const BouncingScrollPhysics(),
-                                child: Container(
-                                    child: Table(
+                                child: Table(
                                         defaultVerticalAlignment:
                                             TableCellVerticalAlignment.middle,
                                         columnWidths: const {
@@ -146,7 +145,7 @@ class _CuivesPageState extends State<CuivesPage>
                                           3: FlexColumnWidth(),
                                           4: FixedColumnWidth(30)
                                         },
-                                        children: _buildRow())))));
+                                        children: _buildRow()))));
                   }))
         ]));
   }

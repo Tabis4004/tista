@@ -153,8 +153,7 @@ class _PompesPageState extends State<PompesPage>
                             child: SingleChildScrollView(
                                 physics: const BouncingScrollPhysics(),
                                 padding: const EdgeInsets.all(14),
-                                child: Container(
-                                    child: Table(
+                                child: Table(
                                         defaultVerticalAlignment:
                                             TableCellVerticalAlignment.middle,
                                         columnWidths: const {
@@ -163,7 +162,7 @@ class _PompesPageState extends State<PompesPage>
                                           //3: IntrinsicColumnWidth(),
                                           2: FixedColumnWidth(30)
                                         },
-                                        children: _buildRow())))));
+                                        children: _buildRow()))));
                   }))
         ]));
   }

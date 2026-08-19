@@ -225,16 +225,19 @@ export default function Journal() {
 
       <div className="kpi-row" style={{ marginBottom: 18 }}>
         <Tile
+          teinte={1}
           label="Espèces"
           valeur={montant(v('ESPECES')?.montant ?? 0)}
           indice={`${litres(v('ESPECES')?.quantite ?? 0)} servis`}
         />
         <Tile
+          teinte={3}
           label="Carte"
           valeur={montant(v('CARTE')?.montant ?? 0)}
           indice={`${litres(v('CARTE')?.quantite ?? 0)} servis`}
         />
         <Tile
+          teinte={4}
           label="Bon"
           valeur={montant(v('BON')?.montant ?? 0)}
           indice={`${litres(v('BON')?.quantite ?? 0)} servis`}
@@ -248,7 +251,7 @@ export default function Journal() {
 
       <div className="kpi-row" style={{ marginBottom: 18 }}>
         <Tile label="Recharges encaissées" valeur={montant(recette?.recharges?.montant ?? 0)} />
-        <Tile label="Dépenses" valeur={montant(recette?.depenses?.montant ?? 0)} />
+        <Tile teinte={2} label="Dépenses" valeur={montant(recette?.depenses?.montant ?? 0)} />
         <Tile
           label="Solde de caisse"
           valeur={recette?.caisse ? montant(recette.caisse.solde) : '—'}

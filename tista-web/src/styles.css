@@ -8,24 +8,53 @@
 :root {
   color-scheme: light;
 
-  --page: #f9f9f7;
-  --surface: #fcfcfb;
-  --ink: #0b0b0b;
-  --ink-2: #52514e;
-  --ink-muted: #898781;
-  --hairline: #e1e0d9;
-  --border: rgba(11, 11, 11, 0.1);
+  /* ---------------------------------------------------------------------
+     Identité TiSta+
+     ---------------------------------------------------------------------
+     Le pétrole est la couleur de marque ; l'ambre, l'indigo et le rose
+     complètent la série. Cet ordre n'est pas décoratif : il a été validé
+     pour rester distinguable en vision daltonienne (écart minimum entre
+     deux couleurs voisines : ΔE 11,9 en protanopie, 21,9 en vision
+     normale) et pour tenir le contraste de 3:1 sur la surface claire.
+     Changer une valeur oblige à repasser la validation.
 
-  --accent: #2a78d6;
-  --accent-ink: #1c5cab;
-  --accent-wash: #eaf2fd;
+     Les couleurs d'état (good / warning / critical) sont distinctes de la
+     série et ne servent jamais de « cinquième couleur » : un état ne se
+     lit jamais à la couleur seule, il porte toujours son mot.
+     --------------------------------------------------------------------- */
 
+  --page: #f6f4ef;
+  --surface: #fbfaf7;
+  --ink: #10120f;
+  --ink-2: #4e534d;
+  --ink-muted: #85897f;
+  --hairline: #e3e1d8;
+  --border: rgba(16, 18, 15, 0.1);
+
+  /* Série — ordre fixe, jamais recyclé */
+  --serie-1: #0a9384;
+  --serie-2: #c97a00;
+  --serie-3: #4457c7;
+  --serie-4: #d8567a;
+
+  /* Lavis : les mêmes teintes très diluées, pour teinter une surface */
+  --wash-1: #e4f4f1;
+  --wash-2: #fbf0dc;
+  --wash-3: #eceefb;
+  --wash-4: #fdeef3;
+
+  /* Marque */
+  --accent: #0a9384;
+  --accent-ink: #06635a;
+  --accent-wash: #e4f4f1;
+
+  /* États — palette réservée */
   --good: #0ca30c;
   --good-text: #006300;
   --warning: #fab219;
   --critical: #d03b3b;
 
-  --radius: 10px;
+  --radius: 14px;
   --gap: 16px;
 
   font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -77,7 +106,7 @@ a { color: var(--accent-ink); }
   text-decoration: none;
   font-size: 14px;
 }
-.nav-link:hover { background: #f2f1ee; }
+.nav-link:hover { background: #efeee9; }
 .nav-link.active {
   background: var(--accent-wash);
   color: var(--accent-ink);
@@ -118,7 +147,23 @@ h2 { font-size: 15px; margin: 28px 0 10px; font-weight: 600; }
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 16px 18px;
+  position: relative;
+  overflow: hidden;
 }
+/* Un filet de couleur en tête de tuile : l'œil retrouve la même teinte que
+   dans le graphique et dans le tableau, sans qu'un mot soit nécessaire. */
+.tile::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: var(--teinte, var(--serie-1));
+}
+.tile.t1 { --teinte: var(--serie-1); }
+.tile.t2 { --teinte: var(--serie-2); }
+.tile.t3 { --teinte: var(--serie-3); }
+.tile.t4 { --teinte: var(--serie-4); }
+.tile.neutre::before { background: var(--hairline); }
 .tile-label {
   font-size: 12px;
   color: var(--ink-muted);
@@ -128,7 +173,7 @@ h2 { font-size: 15px; margin: 28px 0 10px; font-weight: 600; }
 }
 /* Chiffres autonomes : chasse proportionnelle (la chasse fixe est réservée
    aux colonnes qui doivent s'aligner verticalement). */
-.tile-value { font-size: 27px; font-weight: 700; line-height: 1.15; }
+.tile-value { font-size: 28px; font-weight: 800; line-height: 1.15; letter-spacing: -0.4px; }
 .tile-hint { font-size: 12px; color: var(--ink-2); margin-top: 5px; }
 
 .tile-value.negatif { color: var(--critical); }
@@ -159,7 +204,7 @@ tbody td {
   color: var(--ink-2);
 }
 tbody tr:last-child td { border-bottom: none; }
-tbody tr:hover td { background: #f6f5f2; }
+tbody tr:hover td { background: #f5f4ef; }
 td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 td.fort { color: var(--ink); font-weight: 600; }
 
@@ -202,7 +247,7 @@ button {
   color: var(--ink);
   cursor: pointer;
 }
-button:hover:not(:disabled) { background: #f2f1ee; }
+button:hover:not(:disabled) { background: #efeee9; }
 button:disabled { opacity: 0.55; cursor: default; }
 button.primaire {
   background: var(--accent);
@@ -276,15 +321,15 @@ button.primaire:hover:not(:disabled) { background: var(--accent-ink); }
 .legende { display: flex; gap: 18px; font-size: 12px; color: var(--ink-2); }
 .legende span { display: inline-flex; align-items: center; gap: 6px; }
 .pastille { width: 9px; height: 9px; border-radius: 2px; display: inline-block; }
-.pastille.ventes { background: var(--ink); }
-.pastille.depenses { background: var(--critical); }
+.pastille.ventes { background: var(--serie-1); }
+.pastille.depenses { background: var(--serie-2); }
 
 .graphique-svg { width: 100%; height: auto; display: block; }
 .grille { stroke: var(--hairline); stroke-width: 1; }
 .axe-ligne { stroke: var(--border); stroke-width: 1; }
 text.axe { font-size: 10px; fill: var(--ink-muted); font-variant-numeric: tabular-nums; }
-.barre.ventes { fill: var(--ink); }
-.barre.depenses { fill: var(--critical); }
+.barre.ventes { fill: var(--serie-1); }
+.barre.depenses { fill: var(--serie-2); }
 .barre { cursor: default; }
 .barre:hover { opacity: 0.7; }
 

@@ -109,25 +109,32 @@ class _EditDepenseState extends State<EditDepense> {
             : null);
   }
 
-  void onSave() {
-    if (station.valeur != null &&
-        amountCtrl.text.trim().isNotEmpty &&
-        descriptionCtrl.text.trim().isNotEmpty) {
-      showLoading(context);
-      Services.instance.editEntity('/api/caisse/depense/${station.valeur}', {
+  Future<void> onSave() async {
+    if (station.valeur == null ||
+        amountCtrl.text.trim().isEmpty ||
+        descriptionCtrl.text.trim().isEmpty) {
+      showToast(context, "Veuillez remplir les champs obligatoires");
+      return;
+    }
+
+    showLoading(context);
+    try {
+      final value = await Services.instance
+          .editEntity('/api/caisse/depense/${station.valeur}', {
         'price': amountCtrl.text.trim(),
         'date': date.valeur,
         'description': descriptionCtrl.text.trim()
-      }).then((value) {
-        if (Navigator.canPop(context)) Navigator.pop(context);
-        showToast(context, "Dépense enregistrée");
-        if (Navigator.canPop(context)) Navigator.pop(context, value.json);
-      }).catchError((e) {
-        if (Navigator.canPop(context)) Navigator.pop(context);
-        showToast(context, "Une erreur s'est produite");
       });
-    } else {
-      showToast(context, "Veuillez remplir les champs obligatoires");
+      // L'enregistrement peut prendre plusieurs secondes sur un réseau de
+      // station : rien ne garantit que l'écran soit encore là au retour.
+      if (!mounted) return;
+      if (Navigator.canPop(context)) Navigator.pop(context);
+      showToast(context, "Dépense enregistrée");
+      if (Navigator.canPop(context)) Navigator.pop(context, value.json);
+    } catch (_) {
+      if (!mounted) return;
+      if (Navigator.canPop(context)) Navigator.pop(context);
+      showToast(context, "Une erreur s'est produite");
     }
   }
 

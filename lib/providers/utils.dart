@@ -23,7 +23,7 @@ titleCase(String str) {
 }
 
 String getUserName(Map user) {
-  return (user['firstName'] ?? "") + ' ' + (user['lastName'] ?? "");
+  return '${user['firstName'] ?? ""} ${user['lastName'] ?? ""}';
 }
 
 Widget buildConnectionError(void Function() onPressed,

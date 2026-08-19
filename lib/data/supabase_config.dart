@@ -73,7 +73,11 @@ class SupabaseConfig {
     if (_initialized) return;
     await Supabase.initialize(
       url: url,
-      anonKey: anonKey,
+      // `publishableKey` remplace `anonKey`, déprécié : Supabase a renommé ses
+      // clés (`sb_publishable_…` au lieu d'un JWT). Le rôle est le même — une
+      // clé publique, sans pouvoir sans session valide — mais le nom dit enfin
+      // ce qu'elle est, ce qui évite qu'on la traite comme un secret.
+      publishableKey: anonKey,
       // La session est persistée automatiquement et rafraîchie en tâche de
       // fond : plus besoin de gérer le token à la main.
       authOptions: const FlutterAuthClientOptions(

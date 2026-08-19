@@ -143,8 +143,7 @@ class _DepensesPageState extends State<DepensesPage>
                             child: SingleChildScrollView(
                                 physics: const BouncingScrollPhysics(),
                                 padding: const EdgeInsets.all(14),
-                                child: Container(
-                                    child: Table(
+                                child: Table(
                                         defaultVerticalAlignment:
                                             TableCellVerticalAlignment.middle,
                                         columnWidths: const {
@@ -153,7 +152,7 @@ class _DepensesPageState extends State<DepensesPage>
                                           //2: IntrinsicColumnWidth(),
                                           3: IntrinsicColumnWidth()
                                         },
-                                        children: _buildRow())))));
+                                        children: _buildRow()))));
                   }))
         ]));
   }

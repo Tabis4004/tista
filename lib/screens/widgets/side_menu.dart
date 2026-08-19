@@ -151,7 +151,7 @@ class _SideMenuState extends State<SideMenu> {
                             dense: true,
                             title: Text(menu['label'],
                                 style: TextStyle(
-                                    color: appPrimaryColor.withOpacity(.9),
+                                    color: appPrimaryColor.withValues(alpha: .9),
                                     fontWeight: FontWeight.w800))),
                         const SizedBox(height: 5),
                         ...submenus.map<Widget>((m) {
@@ -162,7 +162,7 @@ class _SideMenuState extends State<SideMenu> {
                           return Container(
                               decoration: BoxDecoration(
                                   color: currentLocation
-                                      ? appPrimaryColor.withOpacity(.05)
+                                      ? appPrimaryColor.withValues(alpha: .05)
                                       : null,
                                   border: currentLocation
                                       ? const Border(

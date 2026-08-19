@@ -91,9 +91,11 @@ class _AccueilPageState extends State<AccueilPage> {
     FirebaseMessaging.onMessage.listen(showFlutterNotification);
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       // print('A new onMessageOpenedApp event was published!');
-      if (context.mounted) {
-        context.goNamed(AppRouteConstants.dashboard);
-      }
+      // `mounted` de l'State, pas `context.mounted` : c'est le garde que
+      // l'analyseur reconnaît, et le seul valable si l'écran a été fermé
+      // pendant que la notification arrivait.
+      if (!mounted) return;
+      context.goNamed(AppRouteConstants.dashboard);
     });
     if (Services.instance.isAdmin) {
       FirebaseMessaging.instance.subscribeToTopic('ADMIN');

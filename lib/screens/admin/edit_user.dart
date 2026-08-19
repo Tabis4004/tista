@@ -480,7 +480,7 @@ class Nationale {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> map = {};
-    var v;
+    dynamic v;
     for (var item in values) {
       if (item.valeur != null) {
         v = item.valeur;
