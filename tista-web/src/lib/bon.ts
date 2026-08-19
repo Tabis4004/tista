@@ -51,12 +51,18 @@ const nfMontant = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 });
 export async function imprimerBons(bons: BonImprimable[], entete: EnteteBon): Promise<void> {
   if (bons.length === 0) return;
 
-  const QR = await import('qrcode');
-  const codes = await Promise.all(
-    bons.map((b) =>
-      QR.toDataURL(chargeQr(b), { margin: 0, width: 240, errorCorrectionLevel: 'M' }),
-    ),
-  );
+  // `qrcode-generator` plutôt que `qrcode` : ce dernier embarque une CLI qui
+  // traîne yargs et une version de yargs-parser refusée par les proxies npm
+  // filtrants (CVE de pollution de prototype). Celui-ci n'a aucune dépendance,
+  // et produit du SVG — donc un QR net à l'impression quelle que soit la
+  // résolution, là où une image matricielle pixellise.
+  const { default: qrcode } = await import('qrcode-generator');
+  const codes = bons.map((b) => {
+    const qr = qrcode(0, 'M');
+    qr.addData(chargeQr(b));
+    qr.make();
+    return qr.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
+  });
 
   const fenetre = window.open('', '_blank', 'width=900,height=1000');
   if (!fenetre) {
@@ -111,7 +117,7 @@ export function htmlBons(
         </div>
 
         <div class="droite">
-          <img class="qr" src="${codes[i]}" alt="Code de vérification" />
+          <div class="qr" role="img" aria-label="Code de vérification">${codes[i]}</div>
           <div class="serie">${echapper(b.serie)}</div>
           <div class="verif">À scanner en station</div>
         </div>
@@ -174,6 +180,7 @@ export function htmlBons(
   .fidelite { font-size: 7pt; font-weight: 600; margin-top: 1.5mm; }
 
   .qr { width: 27mm; height: 27mm; }
+  .qr svg { width: 100%; height: 100%; display: block; }
   .serie { font-size: 8.5pt; font-weight: 700; font-family: ui-monospace, monospace; letter-spacing: .4px; }
   .verif { font-size: 6.5pt; color: #898781; text-align: center; }
 
