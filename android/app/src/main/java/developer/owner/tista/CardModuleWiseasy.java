@@ -1,7 +1,10 @@
 package developer.owner.tista;
 
 import android.content.Context;
+import android.os.Build;
 import android.util.Log;
+
+import java.util.Locale;
 
 import wangpos.sdk4.libbasebinder.BankCard;
 
@@ -49,19 +52,90 @@ public class CardModuleWiseasy {
     public static final int UNAVAILABLE = -1;
 
     private final BankCard bankCard;
-    private volatile boolean available = true;
+    private volatile boolean available;
 
-    public CardModuleWiseasy(Context context) {
-        BankCard bc = null;
-        try {
-            bc = new BankCard(context);
-        } catch (Throwable t) {
-            // Le service Wiseasy n'existe pas sur cet appareil : ce n'est pas
-            // un terminal Wiseasy. On le note et on laisse la main au CS10.
-            Log.w(TAG, "SDK Wiseasy indisponible : " + t);
-            available = false;
-        }
+    private CardModuleWiseasy(BankCard bc) {
         this.bankCard = bc;
+        this.available = bc != null;
+    }
+
+    // ------------------------------------------------------------------------
+    // Obtention du lecteur
+    //
+    // POURQUOI CE DÉTOUR PLUTÔT QU'UN SIMPLE `new`
+    //
+    // `new BankCard(context)` se lie à un service système propre aux terminaux
+    // Wiseasy. Sur un appareil qui ne l'expose pas — un téléphone ordinaire —
+    // l'appel ne lève pas d'exception : il attend. Indéfiniment. Appelé depuis
+    // `onCreate`, il empêche l'activité de se créer, l'application n'affiche
+    // jamais rien, et aucun log Dart n'apparaît puisque le point d'entrée Dart
+    // n'est exécuté qu'ensuite. Un écran noir, sans le moindre message.
+    //
+    // Deux garde-fous, donc : on ne touche au SDK que si le matériel y
+    // ressemble, et même alors la construction est bornée dans le temps.
+    // ------------------------------------------------------------------------
+
+    private static volatile CardModuleWiseasy instance;
+    private static volatile boolean dejaTente = false;
+
+    /** Ce matériel a-t-il une chance d'être un terminal Wiseasy ? */
+    public static boolean materielCompatible() {
+        String signature = (Build.MANUFACTURER + ' ' + Build.BRAND + ' '
+                + Build.MODEL + ' ' + Build.DEVICE).toLowerCase(Locale.ROOT);
+        return signature.contains("wiseasy")
+                || signature.contains("wangpos")
+                || signature.contains("wpos")
+                || signature.contains("newpos");
+    }
+
+    /**
+     * Le lecteur, ou {@code null} si cet appareil n'en a pas.
+     *
+     * <p>Construit une seule fois, à la première utilisation. Ne jamais appeler
+     * depuis {@code onCreate} : même borné, l'appel peut coûter trois secondes.
+     */
+    public static synchronized CardModuleWiseasy obtenir(Context context) {
+        if (instance != null) return instance;
+        if (dejaTente) return null;
+        dejaTente = true;
+
+        if (!materielCompatible()) {
+            Log.i(TAG, "Materiel non Wiseasy (" + Build.MANUFACTURER + ' '
+                    + Build.MODEL + ") : lecteur Wiseasy ignore");
+            return null;
+        }
+
+        final Context app = context.getApplicationContext();
+        final BankCard[] resultat = new BankCard[1];
+
+        // Le SDK est construit sur un thread à part, avec un délai : s'il
+        // n'aboutit pas, on abandonne le lecteur au lieu de bloquer l'appelant.
+        Thread t = new Thread(new Runnable() {
+            @Override public void run() {
+                try {
+                    resultat[0] = new BankCard(app);
+                } catch (Throwable e) {
+                    Log.w(TAG, "SDK Wiseasy indisponible : " + e);
+                }
+            }
+        }, "wiseasy-init");
+        t.setDaemon(true);
+        t.start();
+
+        try {
+            t.join(3000);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
+        if (resultat[0] == null) {
+            Log.w(TAG, "SDK Wiseasy sans reponse en 3 s : lecteur abandonne");
+            return null;
+        }
+
+        instance = new CardModuleWiseasy(resultat[0]);
+        Log.i(TAG, "Lecteur Wiseasy pret");
+        return instance;
     }
 
     /** {@code true} tant que le SDK Wiseasy répond sur cet appareil. */

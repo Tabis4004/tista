@@ -124,6 +124,39 @@ void main() {
   });
 }
 
+Future _setInitial() async {
+  try {
+    if (!kIsWeb &&
+        (Platform.isMacOS || Platform.isLinux || Platform.isWindows)) {
+      await windowManager.ensureInitialized();
+
+      WindowOptions windowOptions = const WindowOptions(
+          size: Size(1200, 710),
+          minimumSize: kDebugMode ? null : Size(800, 710),
+          center: true,
+          backgroundColor: Colors.transparent,
+          skipTaskbar: false,
+          title: appName,
+          titleBarStyle: TitleBarStyle.normal);
+
+      windowManager.waitUntilReadyToShow(windowOptions, () async {
+        //await windowManager.setIcon('assets/logo.png');
+        await windowManager.setTitle(appName);
+        await windowManager.setClosable(true);
+        await windowManager.setMovable(true);
+        await windowManager.show();
+        await windowManager.focus();
+      });
+    } else {
+      List<DeviceOrientation> list = [
+        DeviceOrientation.portraitDown,
+        DeviceOrientation.portraitUp
+      ];
+      SystemChrome.setPreferredOrientations(list);
+    }
+  } catch (_) {}
+}
+
 /// Écran d'amorçage : affiche quelque chose immédiatement, initialise ensuite.
 ///
 /// Trois états possibles, et aucun d'eux n'est un écran noir : patience,

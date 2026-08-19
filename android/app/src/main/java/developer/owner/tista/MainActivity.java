@@ -39,6 +39,22 @@ public class MainActivity extends FlutterActivity {
     private static PrinterModuleBleu printerModuleBleu;
     /** Lecteur de carte des terminaux Wiseasy (P3, WPOS). Null hors Wiseasy. */
     private static CardModuleWiseasy cardWiseasy;
+    private static boolean lecteurCherche = false;
+
+    /**
+     * Le lecteur Wiseasy, construit à la première vente et pas avant.
+     *
+     * <p>Surtout pas depuis {@code onCreate} : le SDK Wiseasy s'y bloquait sur
+     * un appareil non Wiseasy, l'activité ne se créait jamais et l'application
+     * restait sur un écran noir muet.
+     */
+    private CardModuleWiseasy lecteurWiseasy() {
+        if (!lecteurCherche) {
+            lecteurCherche = true;
+            cardWiseasy = CardModuleWiseasy.obtenir(getApplicationContext());
+        }
+        return cardWiseasy;
+    }
 
     @Override
     protected void onCreate(@NonNull Bundle savedInstanceState) {
@@ -46,8 +62,6 @@ public class MainActivity extends FlutterActivity {
         ApplicationContext cxt = (ApplicationContext) getApplicationContext();
         printerModuleRego = new PrinterModuleRego(cxt);
         printerModuleBleu = new PrinterModuleBleu(getApplicationContext());
-        cardWiseasy = new CardModuleWiseasy(getApplicationContext());
-        Log.i("Terminal", "Lecteur Wiseasy disponible : " + cardWiseasy.isAvailable());
     }
 
     @Override
@@ -184,8 +198,9 @@ public class MainActivity extends FlutterActivity {
                     // Wiseasy d'abord ; si son SDK est absent, on retombe sur
                     // le CS10. Aucune dépendance à un nom de modèle.
                     int i;
-                    if (cardWiseasy != null && cardWiseasy.isAvailable()) {
-                        i = cardWiseasy.powerOn();
+                    final CardModuleWiseasy w = lecteurWiseasy();
+                    if (w != null && w.isAvailable()) {
+                        i = w.powerOn();
                         if (i == CardModuleWiseasy.UNAVAILABLE) {
                             i = printerModule.logicPowerOn();
                         }
@@ -197,9 +212,10 @@ public class MainActivity extends FlutterActivity {
                     String contenu = call.argument("contenu");
                     boolean writing = call.argument("writing");
                     final String str;
-                    if (cardWiseasy != null && cardWiseasy.isAvailable()) {
-                        str = writing ? cardWiseasy.write(contenu) : cardWiseasy.read();
-                        cardWiseasy.powerOff();
+                    final CardModuleWiseasy lecteur = lecteurWiseasy();
+                    if (lecteur != null && lecteur.isAvailable()) {
+                        str = writing ? lecteur.write(contenu) : lecteur.read();
+                        lecteur.powerOff();
                     } else {
                         str = printerModule.logicCardDispatcher(writing, contenu);
                     }
@@ -211,7 +227,9 @@ public class MainActivity extends FlutterActivity {
                     info.put("brand", android.os.Build.BRAND);
                     info.put("model", android.os.Build.MODEL);
                     info.put("device", android.os.Build.DEVICE);
-                    info.put("wiseasy", cardWiseasy != null && cardWiseasy.isAvailable());
+                    final CardModuleWiseasy diag = lecteurWiseasy();
+                    info.put("wiseasy", diag != null && diag.isAvailable());
+                    info.put("materielCompatible", CardModuleWiseasy.materielCompatible());
                     result.success(info);
                 } //tpe bleu
                 else if (call.method.equals("PrintCheckStatusBleu")) {

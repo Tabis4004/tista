@@ -52,3 +52,6 @@ app.*.map.json
 # Variables d'environnement de la console web
 tista-web/.env
 tista-web/.env.local
+
+# Dossier de travail temporaire (verification de compilation Java)
+_verif/
