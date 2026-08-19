@@ -34,55 +34,60 @@ Les identifiants Supabase du projet « Tista 1.0 » sont déjà dans le code. Vo
 
 ## Déployer
 
+Le déploiement se fait par **intégration Git** : un push sur `main` déclenche
+le build chez Cloudflare, qui publie le Worker.
+
+| Réglage (dashboard Cloudflare) | Valeur |
+|---|---|
+| Project name | `tista-web` — doit correspondre au `name` de `wrangler.toml` |
+| Build command | `npm run build` |
+| Deploy command | `npx wrangler deploy` |
+| Non-production branch deploy command | `npx wrangler versions upload` |
+| **Path** | `/tista-web` — le dépôt contient aussi l'app Flutter |
+| Build variables | `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `NODE_VERSION=22` |
+
+Le Worker ne sert que des fichiers statiques : `wrangler.toml` déclare
+`[assets]` sans script serveur, et `not_found_handling = "single-page-application"`
+renvoie `index.html` sur toute route inconnue — sans quoi un rechargement sur
+`/operations` donnerait un 404.
+
+### Les variables doivent être des variables de BUILD
+
+C'est le piège de ce déploiement, et il est silencieux.
+
+Vite **inline** les `VITE_*` au moment du build : ce ne sont pas des variables
+lues à l'exécution, mais des chaînes écrites en dur dans le JavaScript compilé.
+Elles doivent donc exister pendant le build, dans
+**Settings → Build → Build Variables and Secrets** — et non dans les
+« Variables and Secrets » du Worker, qui ne sont visibles que du code serveur,
+lequel n'existe pas ici.
+
+Si l'application se charge mais ne joint pas Supabase, c'est presque toujours
+ça : les variables ont été saisies au mauvais endroit.
+
+### Déploiement manuel
+
+`./deploy.sh` reste disponible pour publier sans passer par GitHub :
+
 ```bash
 cp .env.example .env      # une seule fois
 ./deploy.sh               # production
-./deploy.sh preprod       # déploiement de prévisualisation
+./deploy.sh preprod       # version de prévisualisation
 ```
 
-### ⚠️ Les variables Cloudflare ne s'appliquent pas ici
-
-C'est le piège de ce mode de déploiement, et il est silencieux.
-
-Vite **inline** les `VITE_*` au moment du build. Comme `deploy.sh` construit en
-local puis pousse `dist/` avec wrangler, ce sont les variables du **`.env` de la
-machine qui build** qui finissent dans le bundle. Les variables saisies dans le
-dashboard Cloudflare ne sont lues que si **Cloudflare construit lui-même**,
-c'est-à-dire avec l'intégration Git — pas avec `wrangler pages deploy`.
-
-Concrètement : renseigner l'URL Supabase dans le dashboard puis déployer avec
-wrangler ne change rien au fichier déployé. Rien ne le signale, et l'application
-continue de parler à l'ancien projet.
-
-C'est pour ça que `deploy.sh` affiche, avant de pousser, **le projet Supabase
-réellement embarqué dans le bundle** — extrait du JavaScript compilé, pas de la
-configuration :
+Attention : il construit **en local**, donc ce sont les variables de ton `.env`
+qui partent en production, pas celles du dashboard. C'est pour ça qu'il affiche,
+avant de pousser, le projet Supabase réellement extrait du JavaScript compilé :
 
 ```
 ──────────────────────────────────────────────
  Projet Supabase embarqué : https://nwzohcwxusdcyxzzmkcr.supabase.co
- Projet Cloudflare Pages  : tista-web
- Branche                  : production
+ Cible                    : production
 ──────────────────────────────────────────────
 ```
 
-Le script refuse par ailleurs de déployer si une clé `service_role` traîne dans
-une variable `VITE_*`.
-
-### Si tu préfères l'intégration Git
-
-Dans ce cas Cloudflare construit, et les variables du dashboard s'appliquent :
-
-| Réglage | Valeur |
-|---|---|
-| Build command | `npm run build` |
-| Build output directory | `dist` |
-| Root directory | `tista-web` |
-| Variables | `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` |
-| `NODE_VERSION` | `18` ou plus |
-
-`public/_redirects` est déjà en place : il renvoie toutes les routes vers
-`index.html`, sans quoi un rechargement sur `/operations` donnerait un 404.
+Il refuse par ailleurs de déployer si une clé `service_role` traîne dans une
+variable `VITE_*`.
 
 ## Accès et sécurité
 

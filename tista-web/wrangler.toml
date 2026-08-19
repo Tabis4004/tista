@@ -1,8 +1,16 @@
-# Cloudflare Pages — console web TiSta+
+# Cloudflare Worker — console web TiSta+
 #
-# `pages_build_output_dir` suffit : wrangler pousse un dossier déjà construit,
-# il ne construit rien lui-même. C'est deploy.sh qui lance `npm run build`.
+# Worker « assets uniquement » : aucun script serveur, Cloudflare sert
+# directement le contenu de dist/. `not_found_handling` en mode SPA renvoie
+# index.html pour toute route inconnue, sans quoi un rechargement sur
+# /operations donnerait un 404.
+#
+# Le nom ci-dessous doit être IDENTIQUE au nom du projet dans le dashboard,
+# sinon `wrangler deploy` publierait vers un autre Worker.
 
 name = "tista-web"
-pages_build_output_dir = "dist"
 compatibility_date = "2026-08-18"
+
+[assets]
+directory = "./dist"
+not_found_handling = "single-page-application"

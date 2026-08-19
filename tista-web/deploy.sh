@@ -1,23 +1,24 @@
 #!/usr/bin/env bash
 #
-# Déploiement de la console web TiSta+ sur Cloudflare Pages.
+# Déploiement manuel de la console web TiSta+ sur Cloudflare Workers.
 #
-#   ./deploy.sh                  -> production
-#   ./deploy.sh preprod          -> déploiement de prévisualisation sur la branche « preprod »
+#   ./deploy.sh            -> production
+#   ./deploy.sh preprod    -> version de prévisualisation (URL dédiée, pas la prod)
 #
-# Prérequis : wrangler configuré (`wrangler login` déjà fait).
+# Depuis la mise en place de l'intégration Git, ce script n'est plus le chemin
+# normal : un push sur main suffit. Il reste utile pour publier sans passer par
+# GitHub, ou pour vérifier un build en local.
 #
 # ─────────────────────────────────────────────────────────────────────────────
 # À RETENIR SUR LES VARIABLES
 #
 # Vite inline les `VITE_*` au moment du build. Ce script construit EN LOCAL,
-# donc ce sont les variables de CE fichier .env qui partent en production.
-# Les variables définies dans le dashboard Cloudflare ne s'appliquent que si
-# c'est Cloudflare qui construit (intégration Git) — pas ici.
+# donc ce sont les variables de CE fichier .env qui partent en production —
+# pas celles du dashboard Cloudflare, qui ne comptent que lorsque c'est
+# Cloudflare qui construit.
 #
 # Le script affiche donc, avant de pousser, le projet Supabase réellement
-# embarqué dans le bundle : c'est le seul moyen fiable de vérifier qu'on ne
-# déploie pas la préproduction en production.
+# embarqué dans le bundle.
 # ─────────────────────────────────────────────────────────────────────────────
 
 set -euo pipefail
@@ -36,8 +37,6 @@ else
   echo "→ Pas de .env : les valeurs par défaut du code seront utilisées"
   echo "  (projet « Tista 1.0 »). Copiez .env.example vers .env pour en changer."
 fi
-
-PROJET="${CF_PAGES_PROJECT:-tista-web}"
 
 # --- 2. Garde-fou : jamais de clé de service dans un build web --------------
 if [ -n "${VITE_SUPABASE_SERVICE_ROLE_KEY:-}" ] || [ -n "${VITE_SERVICE_ROLE_KEY:-}" ]; then
@@ -61,16 +60,17 @@ URL_EMBARQUEE="$(grep -oE 'https://[a-z0-9]+\.supabase\.co' -m1 -r dist/assets 2
 echo
 echo "──────────────────────────────────────────────"
 echo " Projet Supabase embarqué : ${URL_EMBARQUEE:-introuvable}"
-echo " Projet Cloudflare Pages  : $PROJET"
-echo " Branche                  : ${BRANCHE:-production}"
+echo " Cible                    : ${BRANCHE:-production}"
 echo "──────────────────────────────────────────────"
 echo
 
 # --- 6. Déploiement ---------------------------------------------------------
 if [ -n "$BRANCHE" ]; then
-  npx wrangler pages deploy dist --project-name="$PROJET" --branch="$BRANCHE"
+  # Publie une version sans la router en production : Cloudflare renvoie une
+  # URL de prévisualisation dédiée.
+  npx wrangler versions upload
 else
-  npx wrangler pages deploy dist --project-name="$PROJET" --branch=main
+  npx wrangler deploy
 fi
 
 echo
