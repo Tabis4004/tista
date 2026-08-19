@@ -5,12 +5,17 @@ import { SessionContext, useSession, chargerCompte, nomAffiche, aDroit } from '.
 import type { Compte } from './lib/session';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import Journal from './pages/Journal';
 import Operations from './pages/Operations';
 import Depenses from './pages/Depenses';
 import Caisse from './pages/Caisse';
 import SaisieVente from './pages/SaisieVente';
 import Cartes from './pages/Cartes';
 import Clients from './pages/Clients';
+import Bons from './pages/admin/Bons';
+import Utilisateurs from './pages/admin/Utilisateurs';
+import Societe from './pages/admin/Societe';
+import Referentiel from './pages/admin/Referentiel';
 
 export default function App() {
   const [compte, setCompte] = useState<Compte | null>(null);
@@ -57,9 +62,17 @@ export default function App() {
 
 function Console() {
   const { compte } = useSession();
+
   const peutVendre = aDroit(compte, 'EDIT_VENTE');
   const voitCartes = aDroit(compte, 'CARD');
   const voitClients = aDroit(compte, 'CLIENT');
+  const voitOps = aDroit(compte, 'OP');
+
+  // L'administration regroupe ce qui change la configuration, pas les données
+  // d'exploitation. Le comptable n'y a pas sa place ; le gérant réseau si.
+  const voitUtilisateurs = aDroit(compte, 'USERS') || aDroit(compte, 'ROLE');
+  const voitSociete = aDroit(compte, 'EDIT_COMP');
+  const admin = voitUtilisateurs || voitSociete;
 
   return (
     <BrowserRouter>
@@ -70,13 +83,30 @@ function Console() {
             <small>{compte?.companies[0]?.name ?? '—'}</small>
           </div>
 
-          <Lien to="/" libelle="Tableau de bord" />
-          <Lien to="/operations" libelle="Opérations" />
-          {peutVendre ? <Lien to="/vente" libelle="Saisir une vente" /> : null}
-          <Lien to="/depenses" libelle="Dépenses" />
-          <Lien to="/caisse" libelle="Caisse" />
-          {voitCartes ? <Lien to="/cartes" libelle="Cartes" /> : null}
-          {voitClients ? <Lien to="/clients" libelle="Clients" /> : null}
+          <Groupe titre="Exploitation">
+            <Lien to="/" libelle="Tableau de bord" />
+            {voitOps ? <Lien to="/journal" libelle="Journal" /> : null}
+            <Lien to="/operations" libelle="Opérations" />
+            {peutVendre ? <Lien to="/vente" libelle="Saisir une vente" /> : null}
+            <Lien to="/depenses" libelle="Dépenses" />
+            <Lien to="/caisse" libelle="Caisse" />
+          </Groupe>
+
+          {voitCartes || voitClients ? (
+            <Groupe titre="Commercial">
+              {voitCartes ? <Lien to="/cartes" libelle="Cartes" /> : null}
+              {voitClients ? <Lien to="/clients" libelle="Clients" /> : null}
+              {voitCartes ? <Lien to="/bons" libelle="Bons" /> : null}
+            </Groupe>
+          ) : null}
+
+          {admin ? (
+            <Groupe titre="Administration">
+              {voitUtilisateurs ? <Lien to="/admin/utilisateurs" libelle="Utilisateurs" /> : null}
+              {voitSociete ? <Lien to="/admin/societe" libelle="Société" /> : null}
+              {voitSociete ? <Lien to="/admin/referentiel" libelle="Référentiel" /> : null}
+            </Groupe>
+          ) : null}
 
           <PiedDePage />
         </nav>
@@ -84,17 +114,37 @@ function Console() {
         <main className="main">
           <Routes>
             <Route path="/" element={<Dashboard />} />
+            <Route path="/journal" element={voitOps ? <Journal /> : <Navigate to="/" replace />} />
             <Route path="/operations" element={<Operations />} />
             <Route path="/vente" element={peutVendre ? <SaisieVente /> : <Navigate to="/" replace />} />
             <Route path="/depenses" element={<Depenses />} />
             <Route path="/caisse" element={<Caisse />} />
             <Route path="/cartes" element={voitCartes ? <Cartes /> : <Navigate to="/" replace />} />
             <Route path="/clients" element={voitClients ? <Clients /> : <Navigate to="/" replace />} />
+            <Route path="/bons" element={voitCartes ? <Bons /> : <Navigate to="/" replace />} />
+            <Route
+              path="/admin/utilisateurs"
+              element={voitUtilisateurs ? <Utilisateurs /> : <Navigate to="/" replace />}
+            />
+            <Route path="/admin/societe" element={voitSociete ? <Societe /> : <Navigate to="/" replace />} />
+            <Route
+              path="/admin/referentiel"
+              element={voitSociete ? <Referentiel /> : <Navigate to="/" replace />}
+            />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
       </div>
     </BrowserRouter>
+  );
+}
+
+function Groupe({ titre, children }: { titre: string; children: React.ReactNode }) {
+  return (
+    <div className="nav-groupe">
+      <div className="nav-groupe-titre">{titre}</div>
+      {children}
+    </div>
   );
 }
 

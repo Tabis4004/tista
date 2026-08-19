@@ -300,3 +300,63 @@ text.axe { font-size: 10px; fill: var(--ink-muted); font-variant-numeric: tabula
   white-space: nowrap;
 }
 .etiquette.inactif { border-color: var(--critical); color: #7c1d1d; background: #fdf1f1; }
+
+/* ------------------------------------------------------- groupes de menu */
+.nav-groupe { margin-bottom: 6px; }
+.nav-groupe-titre {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--ink-muted);
+  padding: 12px 12px 4px;
+}
+
+/* --------------------------------------------------------------- verdict
+   Le mot porte le résultat ; la bordure ne fait que le renforcer. */
+.verdict {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid;
+  font-size: 14px;
+}
+.verdict.ok { border-color: var(--good); background: #eefbee; color: var(--good-text); }
+.verdict.ko { border-color: var(--critical); background: #fdf1f1; color: #7c1d1d; }
+.verdict b { display: block; margin-bottom: 3px; }
+
+/* ------------------------------------------------------ formulaires longs */
+.grille-champs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+}
+.champ.large { grid-column: 1 / -1; }
+.champ textarea {
+  font: inherit;
+  font-size: 14px;
+  padding: 7px 10px;
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  resize: vertical;
+}
+.champ textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+.champ small { font-size: 11px; }
+
+.case {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  padding: 6px 10px;
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  background: var(--surface);
+  cursor: pointer;
+}
+
+@media (max-width: 820px) {
+  .nav-groupe-titre { display: none; }
+  .nav-groupe { display: flex; margin-bottom: 0; }
+}
