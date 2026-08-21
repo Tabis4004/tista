@@ -38,7 +38,11 @@ interface Verdict {
 
 const SELECT =
   'id, serie, secret, montant, statut, date_emission, date_expiration, utilise_at, ' +
-  'motif_annulation, client:clients(name, prenoms), station:stations(name)';
+  'motif_annulation, client:clients(name, prenoms), '
+  // `bons` a deux cles etrangeres vers `stations` — station_id (emission) et
+  // utilise_station (consommation). Sans le nom de la contrainte, PostgREST
+  // refuse la requete entiere : « more than one relationship was found ».
+  'station:stations!bons_station_id_fkey(name)';
 
 const MAX = 500;
 

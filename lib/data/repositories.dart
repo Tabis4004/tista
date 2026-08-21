@@ -703,7 +703,11 @@ class BonRepository {
       var q = db
           .from('bons')
           .select('serie, montant, statut, date_emission, date_expiration, '
-              'utilise_at, client:clients(name, prenoms), station:stations(name)')
+              'utilise_at, client:clients(name, prenoms), '
+              // `bons` a deux cles etrangeres vers `stations` — station_id
+              // (emission) et utilise_station (consommation). Sans le nom de
+              // la contrainte, PostgREST refuse la requete entiere.
+              'station:stations!bons_station_id_fkey(name)')
           .eq('company_id', company);
       if (statut != null) q = q.eq('statut', statut);
       final rows = await q.order('date_emission', ascending: false).limit(limite);

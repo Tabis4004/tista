@@ -7,9 +7,9 @@ import { Alerte, Champ, Table, Tile } from '../../components/ui';
 import type { Colonne } from '../../components/ui';
 
 interface Affectation {
-  role: { uuid: string | null; name: string } | null;
+  role: { id: string; uuid: string | null; name: string } | null;
   company: { id: string; name: string } | null;
-  station: { name: string } | null;
+  station: { id: string; name: string } | null;
 }
 
 interface Utilisateur extends Record<string, unknown> {
@@ -30,7 +30,15 @@ interface Role {
   uuid: string | null;
   name: string;
   niveau: string;
+  company_id: string | null;
   droits_app: string[] | null;
+}
+
+interface StationRef {
+  id: string;
+  uuid: string | null;
+  name: string;
+  company_id: string;
 }
 
 const SELECT =
@@ -39,10 +47,10 @@ const SELECT =
   // deux fois — par `user_id` (le titulaire) et par `created_by` (celui qui a
   // attribué le rôle). Sans la contrainte nommée, PostgREST refuse de deviner.
   'user_roles!user_roles_user_id_fkey(' +
-  'role:roles(uuid, name), company:companies(id, name), station:stations(name))';
+  'role:roles(id, uuid, name), company:companies(id, name), station:stations(id, name))';
 
 export default function Utilisateurs() {
-  const { compte, company, stations } = useSession();
+  const { compte, company, stations, recharger } = useSession();
 
   const [users, setUsers] = useState<Utilisateur[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
@@ -65,20 +73,37 @@ export default function Utilisateurs() {
   const [stationsChoisies, setStationsChoisies] = useState<string[]>([]);
   const [envoi, setEnvoi] = useState(false);
 
+  // Édition du rôle d'un compte existant.
+  //
+  // Sans cet écran, un compte créé sans rôle — ce qui arrivait dès que
+  // l'attribution échouait — restait définitivement inutilisable : il
+  // n'apparaissait dans aucune société et rien ne permettait de le rattraper.
+  const [edite, setEdite] = useState<Utilisateur | null>(null);
+  const [roleEdit, setRoleEdit] = useState('');
+  const [societeEdit, setSocieteEdit] = useState('');
+  const [stationsEdit, setStationsEdit] = useState<string[]>([]);
+  const [envoiRole, setEnvoiRole] = useState(false);
+  const [toutesStations, setToutesStations] = useState<StationRef[]>([]);
+
   const charger = useCallback(async () => {
     setChargement(true);
     setErreur(null);
     try {
-      const [resU, resR] = await Promise.all([
+      const [resU, resR, resS] = await Promise.all([
         supabase.from('profiles').select(SELECT).order('name').limit(300),
         // `roles_attribuables` et non `roles` : la base décide de ce qu'un
         // administrateur de société peut attribuer, et elle ne renvoie que les
         // rôles d'employé. La liste n'est pas filtrée ici — elle arrive filtrée.
         supabase.rpc('roles_attribuables', { p_company: company?.id ?? null }),
+        // Toutes les stations visibles, pas seulement celles de la société
+        // courante : un superadmin peut affecter quelqu'un à une autre société
+        // sans quitter cet écran.
+        supabase.from('stations').select('id, uuid, name, company_id').order('name'),
       ]);
       if (resU.error) throw resU.error;
       setUsers((resU.data ?? []) as unknown as Utilisateur[]);
       if (!resR.error) setRoles((resR.data ?? []) as Role[]);
+      if (!resS.error) setToutesStations((resS.data ?? []) as StationRef[]);
     } catch (e) {
       setErreur(messageErreur(e));
     } finally {
@@ -105,6 +130,19 @@ export default function Utilisateurs() {
         .some((v) => String(v).toLowerCase().includes(q));
     });
   }, [users, recherche, filtreSociete]);
+
+  // Les rôles proposables sur la société en cours d'édition. `roles_attribuables`
+  // a déjà écarté ce que l'appelant n'a pas le droit de donner ; il reste à
+  // écarter les rôles propres à une AUTRE société.
+  const rolesPourSociete = useMemo(
+    () => roles.filter((r) => !r.company_id || r.company_id === societeEdit),
+    [roles, societeEdit],
+  );
+
+  const stationsPourSociete = useMemo(
+    () => toutesStations.filter((s) => s.company_id === societeEdit),
+    [toutesStations, societeEdit],
+  );
 
   async function creer() {
     setEnvoi(true);
@@ -146,6 +184,94 @@ export default function Utilisateurs() {
     }
   }
 
+  /** Ouvre l'éditeur pré-rempli avec l'affectation existante, s'il y en a une. */
+  function ouvrirEdition(u: Utilisateur) {
+    const a = (u.user_roles ?? [])[0];
+    const cible = a?.company?.id ?? company?.id ?? '';
+    setEdite(u);
+    setSocieteEdit(cible);
+    setRoleEdit(a?.role?.id ?? '');
+    setStationsEdit(
+      (u.user_roles ?? [])
+        .filter((x) => x.company?.id === cible && x.station)
+        .map((x) => x.station!.id),
+    );
+    setErreur(null);
+    setSucces(null);
+  }
+
+  /**
+   * Remplace l'affectation d'un compte sur UNE société.
+   *
+   * On efface puis on réinsère au lieu de modifier ligne à ligne : la portée
+   * peut passer de « toute la société » à deux stations, ou l'inverse, et ces
+   * transitions ne sont pas un simple update — ce sont des lignes qui
+   * apparaissent et disparaissent.
+   *
+   * L'écriture se fait avec la session de l'utilisateur courant, donc sous la
+   * policy `user_roles_write` et le trigger `check_portee_role` : un
+   * administrateur de société ne peut toujours pas se fabriquer un
+   * ADMIN_COMPANY par ici.
+   */
+  async function enregistrerRole() {
+    if (!edite || !societeEdit || !roleEdit) return;
+    setEnvoiRole(true);
+    setErreur(null);
+    setSucces(null);
+    try {
+      const { error: eSuppr } = await supabase
+        .from('user_roles')
+        .delete()
+        .eq('user_id', edite.id)
+        .eq('company_id', societeEdit);
+      if (eSuppr) throw eSuppr;
+
+      const cibles: (string | null)[] = stationsEdit.length ? stationsEdit : [null];
+      const { error } = await supabase.from('user_roles').insert(
+        cibles.map((st) => ({
+          user_id: edite.id,
+          company_id: societeEdit,
+          station_id: st,
+          role_id: roleEdit,
+        })),
+      );
+      if (error) throw error;
+
+      const nomRole = roles.find((r) => r.id === roleEdit)?.name ?? 'Rôle';
+      setSucces(`${nomAffichable(edite)} : ${nomRole} attribué.`);
+      setEdite(null);
+      await charger();
+      // Si on vient de modifier ses propres droits, la session doit suivre.
+      if (edite.id === compte?.profil.id) await recharger();
+    } catch (e) {
+      setErreur(messageErreur(e));
+    } finally {
+      setEnvoiRole(false);
+    }
+  }
+
+  /** Retire toute affectation du compte sur la société en cours d'édition. */
+  async function retirerRole() {
+    if (!edite || !societeEdit) return;
+    setEnvoiRole(true);
+    setErreur(null);
+    try {
+      const { error } = await supabase
+        .from('user_roles')
+        .delete()
+        .eq('user_id', edite.id)
+        .eq('company_id', societeEdit);
+      if (error) throw error;
+      setSucces(`${nomAffichable(edite)} n'a plus de rôle sur cette société.`);
+      setEdite(null);
+      await charger();
+    } catch (e) {
+      setErreur(messageErreur(e));
+    } finally {
+      setEnvoiRole(false);
+    }
+  }
+
   async function basculerActif(u: Utilisateur) {
     setErreur(null);
     try {
@@ -160,6 +286,9 @@ export default function Utilisateurs() {
       setErreur(messageErreur(e));
     }
   }
+
+  const nomAffichable = (u: Utilisateur): string =>
+    `${u.name ?? ''} ${u.prenoms ?? ''}`.trim() || u.username || u.mail || 'Ce compte';
 
   const affectation = (u: Utilisateur): string => {
     const a = u.user_roles ?? [];
@@ -202,7 +331,17 @@ export default function Utilisateurs() {
       cle: 'actions',
       titre: '',
       rendu: (u) => (
-        <button onClick={() => basculerActif(u)}>{u.active ? 'Désactiver' : 'Réactiver'}</button>
+        <div className="ligne" style={{ gap: 6, justifyContent: 'flex-end' }}>
+          {u.is_superadmin ? null : (
+            <button
+              className={(u.user_roles ?? []).length === 0 ? 'primaire' : undefined}
+              onClick={() => ouvrirEdition(u)}
+            >
+              {(u.user_roles ?? []).length === 0 ? 'Attribuer un rôle' : 'Rôle'}
+            </button>
+          )}
+          <button onClick={() => basculerActif(u)}>{u.active ? 'Désactiver' : 'Réactiver'}</button>
+        </div>
       ),
     },
   ];
@@ -287,6 +426,84 @@ export default function Utilisateurs() {
             La création passe par une fonction serveur : la clé qui permet de créer un compte
             d'authentification ne se trouve pas dans cette application.
           </p>
+        </div>
+      ) : null}
+
+      {edite ? (
+        <div className="card" style={{ padding: 16, marginBottom: 18 }}>
+          <h2 style={{ marginTop: 0 }}>Rôle de {nomAffichable(edite)}</h2>
+          <p className="muted" style={{ marginTop: -6 }}>Actuellement : {affectation(edite)}</p>
+
+          <div className="filtres" style={{ marginBottom: 8 }}>
+            <Champ label="Société">
+              <select
+                value={societeEdit}
+                onChange={(e) => {
+                  setSocieteEdit(e.target.value);
+                  setStationsEdit([]);
+                  setRoleEdit('');
+                }}
+              >
+                {(compte?.companies ?? []).map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.marque?.nom ?? c.name}
+                  </option>
+                ))}
+              </select>
+            </Champ>
+            <Champ label="Rôle">
+              <select value={roleEdit} onChange={(e) => setRoleEdit(e.target.value)}>
+                <option value="">Choisir…</option>
+                {rolesPourSociete.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.name}
+                  </option>
+                ))}
+              </select>
+            </Champ>
+          </div>
+
+          <div className="champ" style={{ marginBottom: 12 }}>
+            <label>Stations (aucune cochée = toute la société)</label>
+            <div className="ligne">
+              {stationsPourSociete.length === 0 ? (
+                <span className="muted">Cette société n'a encore aucune station.</span>
+              ) : (
+                stationsPourSociete.map((st) => (
+                  <label key={st.id} className="case">
+                    <input
+                      type="checkbox"
+                      checked={stationsEdit.includes(st.id)}
+                      onChange={(e) =>
+                        setStationsEdit((prev) =>
+                          e.target.checked
+                            ? [...prev, st.id]
+                            : prev.filter((x) => x !== st.id),
+                        )
+                      }
+                    />
+                    {st.name}
+                  </label>
+                ))
+              )}
+            </div>
+          </div>
+
+          <div className="ligne" style={{ gap: 8 }}>
+            <button
+              className="primaire"
+              onClick={enregistrerRole}
+              disabled={envoiRole || !roleEdit || !societeEdit}
+            >
+              {envoiRole ? 'Enregistrement…' : 'Enregistrer'}
+            </button>
+            <button onClick={retirerRole} disabled={envoiRole}>
+              Retirer le rôle
+            </button>
+            <button onClick={() => setEdite(null)} disabled={envoiRole}>
+              Annuler
+            </button>
+          </div>
         </div>
       ) : null}
 

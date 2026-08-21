@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { useSession } from '../../lib/session';
 import { messageErreur } from '../../lib/erreurs';
@@ -33,7 +34,8 @@ const SELECT =
   'demandeur:profiles!companies_demandeur_fkey(name, mail), stations(id), clients(id)';
 
 export default function Societes() {
-  const { compte, choisirCompany, recharger } = useSession();
+  const { compte, company, choisirCompany, recharger } = useSession();
+  const naviguer = useNavigate();
 
   const [societes, setSocietes] = useState<Societe[]>([]);
   const [erreur, setErreur] = useState<string | null>(null);
@@ -128,6 +130,20 @@ export default function Societes() {
     }
   }
 
+  /**
+   * Basculer le contexte de travail sur une société.
+   *
+   * Le bouton semblait mort : il changeait bien la société courante, mais on
+   * restait sur l'écran du parc, où rien ne bouge — le seul indice était le nom
+   * dans le menu, que personne ne regarde après avoir cliqué. On emmène donc
+   * l'utilisateur là où le changement se voit : le tableau de bord de la
+   * société qu'il vient de choisir.
+   */
+  function travaillerSur(s: Societe) {
+    choisirCompany(s.id);
+    naviguer('/');
+  }
+
   async function basculer(s: Societe) {
     setErreur(null);
     try {
@@ -190,7 +206,13 @@ export default function Societes() {
           <span className="muted">{s.motif_refus ?? '—'}</span>
         ) : (
           <div className="ligne" style={{ gap: 6 }}>
-            <button onClick={() => choisirCompany(s.id)}>Travailler dessus</button>
+            {company?.id === s.id ? (
+              <span className="etiquette">Société courante</span>
+            ) : (
+              <button className="primaire" onClick={() => travaillerSur(s)}>
+                Travailler dessus
+              </button>
+            )}
             <button onClick={() => basculer(s)}>{s.active ? 'Suspendre' : 'Réactiver'}</button>
           </div>
         ),
